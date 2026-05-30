@@ -15,7 +15,7 @@ html, body, [class*="css"], .stApp {
 #MainMenu, footer, header { visibility: hidden; }
 
 .main .block-container {
-    max-width: 360px !important;
+    max-width: 265px !important;
     padding: 0 20px !important;
     margin: 0 auto !important;
 }
@@ -118,7 +118,7 @@ html, body, [class*="css"], .stApp {
     color: #f2f2f7 !important;
     font-size: 14px !important;
     font-family: 'Inter', sans-serif !important;
-    height: 46px !important;
+    height: 76px !important;
     padding: 0 14px !important;
     transition: border-color 180ms ease !important;
     box-shadow: none !important;
@@ -171,7 +171,7 @@ div.stButton > button {
     color: #111112 !important;
     font-size: 12px !important;
     font-weight: 800 !important;
-    height: 46px !important;
+    height: 76px !important;
     letter-spacing: 0.1em !important;
     text-transform: uppercase !important;
     font-family: 'Inter', sans-serif !important;

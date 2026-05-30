@@ -134,13 +134,30 @@ html, body, [class*="css"], .stApp {
     box-shadow: 0 0 0 3px rgba(78,205,196,0.12) !important;
 }
 
-/* remove borda extra do wrapper do campo senha */
+/* remove qualquer borda/fundo extra em todos os wrappers */
 [data-testid="stTextInput"] > div,
-[data-testid="stTextInput"] > div > div {
+[data-testid="stTextInput"] > div > div,
+[data-testid="stTextInput"] > div > div > div {
     border: none !important;
     background: transparent !important;
     box-shadow: none !important;
     gap: 0 !important;
+    padding: 0 !important;
+}
+
+/* força os dois campos com o mesmo visual exato */
+[data-testid="stTextInput"] > div > div > div > input,
+[data-testid="stTextInput"] > div > div > div > div > input {
+    background: rgba(18,18,20,0.9) !important;
+    border: 1px solid rgba(255,255,255,0.1) !important;
+    border-radius: 8px !important;
+    color: #f2f2f7 !important;
+    font-size: 14px !important;
+    height: 46px !important;
+    padding: 0 14px !important;
+    width: 100% !important;
+    box-shadow: none !important;
+    outline: none !important;
 }
 
 /* olho fora do campo */

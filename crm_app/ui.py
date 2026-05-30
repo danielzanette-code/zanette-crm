@@ -1637,14 +1637,14 @@ def render_bi() -> None:
                     hovertemplate="<b>%{label}</b><br>Produção: %{customdata} m²<br>Participação: %{percent}<extra></extra>",
                     customdata=comparativo_df["valor"].map(format_quantity),
                 )
-                st.plotly_chart(style_donut(fig, f"{cliente_sel}<br>{(producao_cliente / total_producao_mercado):.1%}"), use_container_width=True, config={"staticPlot": False, "displayModeBar": False, "scrollZoom": False})
+                st.plotly_chart(style_donut(fig, f"{cliente_sel}<br>{(producao_cliente / total_producao_mercado):.1%}"), use_container_width=True, key="donut_prod_comp", config={"displayModeBar": False})
             else:
                 fig = px.pie(regiao_df, names="regiao", values="producao_m2", hole=0.62, color_discrete_sequence=CHART_COLORS)
                 fig.update_traces(
                     hovertemplate="<b>%{label}</b><br>Produção: %{customdata} m²<br>Participação: %{percent}<extra></extra>",
                     customdata=regiao_df["producao_m2"].map(format_quantity),
                 )
-                st.plotly_chart(style_donut(fig, f"{format_quantity(regiao_df['producao_m2'].sum())}<br>m²"), use_container_width=True, config={"staticPlot": False, "displayModeBar": False, "scrollZoom": False})
+                st.plotly_chart(style_donut(fig, f"{format_quantity(regiao_df['producao_m2'].sum())}<br>m²"), use_container_width=True, key="donut_prod_regiao", config={"displayModeBar": False})
 
     with col_mix:
         donut_title("Mix por Tipologia")
@@ -1669,13 +1669,10 @@ def render_bi() -> None:
                     }
                 )
                 fig = px.pie(comparativo_df, names="grupo", values="valor", hole=0.62, color_discrete_sequence=CHART_COLORS)
-                st.plotly_chart(
-                    style_donut(fig, f"{tipologia_cliente}<br>{(tipologia_total / mix_df['valor'].sum()):.1%}"),
-                    use_container_width=True,
-                )
+                st.plotly_chart(style_donut(fig, f"{tipologia_cliente}<br>{(tipologia_total / mix_df['valor'].sum()):.1%}"), use_container_width=True, key="donut_mix_comp", config={"displayModeBar": False})
             else:
                 fig = px.pie(mix_df, names="tipologia", values="valor", hole=0.62, color_discrete_sequence=CHART_COLORS)
-                st.plotly_chart(style_donut(fig, "Mix"), use_container_width=True, config={"staticPlot": False, "displayModeBar": False, "scrollZoom": False})
+                st.plotly_chart(style_donut(fig, "Mix"), use_container_width=True, key="donut_mix", config={"displayModeBar": False})
 
     with col_fat_regiao:
         donut_title("Faturamento por Região")
@@ -1710,7 +1707,7 @@ def render_bi() -> None:
                     )
                     st.plotly_chart(
                         style_donut(fig, f"{regiao_cliente}<br>{(faturamento_regiao / total_fat_mercado):.1%}", height=350, bottom_margin=52, revision_key="donut-fat-regiao"),
-                        use_container_width=True,
+                        use_container_width=True, key="donut_fat_comp", config={"displayModeBar": False},
                     )
                 else:
                     fig = px.pie(fat_regiao_df, names="regiao", values="faturamento", hole=0.62, color_discrete_sequence=CHART_COLORS)
@@ -1720,7 +1717,7 @@ def render_bi() -> None:
                     )
                     st.plotly_chart(
                         style_donut(fig, f"Total<br>{format_brl(fat_regiao_df['faturamento'].sum())}", height=350, bottom_margin=52, revision_key="donut-fat-regiao"),
-                        use_container_width=True,
+                        use_container_width=True, key="donut_fat_regiao", config={"displayModeBar": False},
                     )
 
     with col_share:
@@ -1781,7 +1778,7 @@ def render_bi() -> None:
                 ))
                 st.plotly_chart(
                     style_donut(fig, f"Quimicer<br>{share_quimicer:.1%}", height=350, bottom_margin=52, revision_key="donut-share-quimicer"),
-                    use_container_width=True,
+                    use_container_width=True, key="donut_share_quimicer", config={"displayModeBar": False},
                 )
                 concorrentes_label = "concorrente" if concorrentes_total == 1 else "concorrentes"
                 st.caption(f"Total de {int(concorrentes_total)} {concorrentes_label} no filtro atual.")

@@ -129,8 +129,10 @@ def style_donut(fig, center_text: str, height: int = 360, bottom_margin: int = 6
         ),
         margin=dict(l=12, r=12, t=18, b=bottom_margin),
         uirevision=revision_key,
-        # desativa todas as animações
-        transition=dict(duration=0),
         dragmode=False,
+        transition=dict(duration=0, easing="linear"),
+        paper_bgcolor="rgba(0,0,0,0)",
+        plot_bgcolor="rgba(0,0,0,0)",
     )
+    fig.update_traces(pull=0)
     return fig

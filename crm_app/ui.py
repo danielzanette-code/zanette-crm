@@ -1115,7 +1115,7 @@ def render_empresas() -> None:
     if modo == "Cadastrar":
         with st.form("empresa_nova_form"):
             payload = empresa_form("nova")
-            submitted = st.form_submit_button("Cadastrar cliente", use_container_width=True)
+            submitted = st.form_submit_button("Cadastrar cliente", use_container_width=True, config={"staticPlot": False, "displayModeBar": False, "scrollZoom": False})
         if submitted:
             try:
                 empresa_id = save_empresa(payload)
@@ -1164,8 +1164,8 @@ def render_empresas() -> None:
     with st.form(f"empresa_editar_{empresa_id}"):
         payload = empresa_form(f"editar_{empresa_id}", empresa)
         save_col, delete_col = st.columns(2)
-        submitted = save_col.form_submit_button("Salvar alterações", use_container_width=True)
-        delete_submitted = delete_col.form_submit_button("Apagar cliente", use_container_width=True)
+        submitted = save_col.form_submit_button("Salvar alterações", use_container_width=True, config={"staticPlot": False, "displayModeBar": False, "scrollZoom": False})
+        delete_submitted = delete_col.form_submit_button("Apagar cliente", use_container_width=True, config={"staticPlot": False, "displayModeBar": False, "scrollZoom": False})
 
     if submitted:
         try:
@@ -1187,7 +1187,7 @@ def render_empresas() -> None:
             "Isso também remove produtos e interações desse cliente."
         )
         confirm_col, cancel_col = st.columns(2)
-        if confirm_col.button("Confirmar exclusão", use_container_width=True):
+        if confirm_col.button("Confirmar exclusão", use_container_width=True, config={"staticPlot": False, "displayModeBar": False, "scrollZoom": False}):
             delete_empresa(empresa_id)
             st.session_state.pop("delete_client_id", None)
             st.session_state.pop("delete_client_name", None)
@@ -1195,7 +1195,7 @@ def render_empresas() -> None:
                 st.session_state.pop("selected_empresa_id", None)
             st.success("Cliente apagado.")
             st.rerun()
-        if cancel_col.button("Cancelar exclusão", use_container_width=True):
+        if cancel_col.button("Cancelar exclusão", use_container_width=True, config={"staticPlot": False, "displayModeBar": False, "scrollZoom": False}):
             st.session_state.pop("delete_client_id", None)
             st.session_state.pop("delete_client_name", None)
             st.rerun()
@@ -1221,9 +1221,9 @@ def render_produtos_for_empresa(empresa_id: int, empresa_nome: str) -> None:
     section_title("Produtos do Cliente", f"Cadastro e edição de produtos vinculados a {empresa_nome}.")
 
     c1, c2, c3 = st.columns([1, 1, 1])
-    if c1.button("Adicionar produto", key=f"add_prod_{empresa_id}", use_container_width=True):
+    if c1.button("Adicionar produto", key=f"add_prod_{empresa_id}", use_container_width=True, config={"staticPlot": False, "displayModeBar": False, "scrollZoom": False}):
         st.session_state["show_product_form"] = True
-    if c2.button("Fechar formulário", key=f"close_prod_{empresa_id}", use_container_width=True):
+    if c2.button("Fechar formulário", key=f"close_prod_{empresa_id}", use_container_width=True, config={"staticPlot": False, "displayModeBar": False, "scrollZoom": False}):
         st.session_state["show_product_form"] = False
 
     produtos = list_produtos_cliente(empresa_id=empresa_id)
@@ -1254,7 +1254,7 @@ def render_produtos_for_empresa(empresa_id: int, empresa_nome: str) -> None:
             valor_text = p3.text_input("Valor unitário (R$)", placeholder="Ex.: 6,50", key=f"produto_valor_novo_{empresa_id}")
             fornecedor = st.text_input("Fornecedor atual", placeholder="Ex.: fornecedor usado hoje", key=f"produto_fornecedor_novo_{empresa_id}")
             observacoes = st.text_area("Observações", height=90, key=f"produto_obs_novo_{empresa_id}")
-            submitted = st.form_submit_button("Salvar produto", use_container_width=True)
+            submitted = st.form_submit_button("Salvar produto", use_container_width=True, config={"staticPlot": False, "displayModeBar": False, "scrollZoom": False})
 
         if submitted:
             try:
@@ -1310,10 +1310,10 @@ def render_produtos_for_empresa(empresa_id: int, empresa_nome: str) -> None:
         st.session_state[edit_state_key] = False
 
     edit_col, cancel_col = st.columns(2)
-    if edit_col.button("Editar tabela", key=f"edit_table_btn_{empresa_id}", use_container_width=True):
+    if edit_col.button("Editar tabela", key=f"edit_table_btn_{empresa_id}", use_container_width=True, config={"staticPlot": False, "displayModeBar": False, "scrollZoom": False}):
         st.session_state[edit_state_key] = True
     if st.session_state[edit_state_key]:
-        if cancel_col.button("Fechar edição", key=f"cancel_table_btn_{empresa_id}", use_container_width=True):
+        if cancel_col.button("Fechar edição", key=f"cancel_table_btn_{empresa_id}", use_container_width=True, config={"staticPlot": False, "displayModeBar": False, "scrollZoom": False}):
             st.session_state[edit_state_key] = False
             st.rerun()
 
@@ -1351,7 +1351,7 @@ def render_produtos_for_empresa(empresa_id: int, empresa_nome: str) -> None:
                 disabled=["ID"],
                 key=f"editor_produtos_{empresa_id}",
             )
-            salvar_tabela = st.form_submit_button("Salvar alterações da tabela", use_container_width=True)
+            salvar_tabela = st.form_submit_button("Salvar alterações da tabela", use_container_width=True, config={"staticPlot": False, "displayModeBar": False, "scrollZoom": False})
 
         if salvar_tabela:
             try:
@@ -1413,7 +1413,7 @@ def render_tecnicos() -> None:
             nome = st.text_input("Nome")
             email = st.text_input("E-mail")
             telefone = st.text_input("Telefone")
-            submitted = st.form_submit_button("Cadastrar técnico", use_container_width=True)
+            submitted = st.form_submit_button("Cadastrar técnico", use_container_width=True, config={"staticPlot": False, "displayModeBar": False, "scrollZoom": False})
         if submitted:
             try:
                 add_tecnico(nome, email, telefone)
@@ -1460,7 +1460,7 @@ def render_interacoes() -> None:
             capacidade_text = c1.text_input("Capacidade m²", placeholder="Ex.: 1.500.000,00")
             producao_text = c2.text_input("Produção m²", placeholder="Ex.: 600.000,00")
             consumo_text = c3.text_input("Consumo kg", placeholder="Ex.: 1.000,00")
-            submitted = st.form_submit_button("Salvar interação", use_container_width=True)
+            submitted = st.form_submit_button("Salvar interação", use_container_width=True, config={"staticPlot": False, "displayModeBar": False, "scrollZoom": False})
         if submitted:
             try:
                 add_interacao(
@@ -1637,14 +1637,14 @@ def render_bi() -> None:
                     hovertemplate="<b>%{label}</b><br>Produção: %{customdata} m²<br>Participação: %{percent}<extra></extra>",
                     customdata=comparativo_df["valor"].map(format_quantity),
                 )
-                st.plotly_chart(style_donut(fig, f"{cliente_sel}<br>{(producao_cliente / total_producao_mercado):.1%}"), use_container_width=True)
+                st.plotly_chart(style_donut(fig, f"{cliente_sel}<br>{(producao_cliente / total_producao_mercado):.1%}"), use_container_width=True, config={"staticPlot": False, "displayModeBar": False, "scrollZoom": False})
             else:
                 fig = px.pie(regiao_df, names="regiao", values="producao_m2", hole=0.62, color_discrete_sequence=CHART_COLORS)
                 fig.update_traces(
                     hovertemplate="<b>%{label}</b><br>Produção: %{customdata} m²<br>Participação: %{percent}<extra></extra>",
                     customdata=regiao_df["producao_m2"].map(format_quantity),
                 )
-                st.plotly_chart(style_donut(fig, f"{format_quantity(regiao_df['producao_m2'].sum())}<br>m²"), use_container_width=True)
+                st.plotly_chart(style_donut(fig, f"{format_quantity(regiao_df['producao_m2'].sum())}<br>m²"), use_container_width=True, config={"staticPlot": False, "displayModeBar": False, "scrollZoom": False})
 
     with col_mix:
         donut_title("Mix por Tipologia")
@@ -1675,7 +1675,7 @@ def render_bi() -> None:
                 )
             else:
                 fig = px.pie(mix_df, names="tipologia", values="valor", hole=0.62, color_discrete_sequence=CHART_COLORS)
-                st.plotly_chart(style_donut(fig, "Mix"), use_container_width=True)
+                st.plotly_chart(style_donut(fig, "Mix"), use_container_width=True, config={"staticPlot": False, "displayModeBar": False, "scrollZoom": False})
 
     with col_fat_regiao:
         donut_title("Faturamento por Região")
@@ -1816,7 +1816,7 @@ def render_bi() -> None:
             max_value = consumo_df["consumo_kg"].max()
             fig.update_layout(showlegend=False, coloraxis_showscale=False, xaxis_title="", yaxis_title="")
             fig.update_xaxes(range=[0, max_value * 1.28 if max_value else 1])
-            st.plotly_chart(style_chart(fig, height=430), use_container_width=True)
+            st.plotly_chart(style_chart(fig, height=430), use_container_width=True, config={"staticPlot": False, "displayModeBar": False, "scrollZoom": False})
 
     with right:
         chart_card(
@@ -1847,7 +1847,7 @@ def render_bi() -> None:
             max_value = faturamento_df["faturamento"].max()
             fig.update_layout(showlegend=False, coloraxis_showscale=False, xaxis_title="", yaxis_title="")
             fig.update_xaxes(range=[0, max_value * 1.30 if max_value else 1])
-            st.plotly_chart(style_chart(fig, height=430), use_container_width=True)
+            st.plotly_chart(style_chart(fig, height=430), use_container_width=True, config={"staticPlot": False, "displayModeBar": False, "scrollZoom": False})
 
     left, right = st.columns([1, 1])
     with left:
@@ -1869,7 +1869,7 @@ def render_bi() -> None:
             max_value = top_clientes["producao_m2"].max()
             fig.update_layout(showlegend=False, coloraxis_showscale=False, xaxis_title="", yaxis_title="")
             fig.update_xaxes(range=[0, max_value * 1.24 if max_value else 1])
-            st.plotly_chart(style_chart(fig, height=430), use_container_width=True)
+            st.plotly_chart(style_chart(fig, height=430), use_container_width=True, config={"staticPlot": False, "displayModeBar": False, "scrollZoom": False})
 
     with right:
         chart_card("Top Clientes por Faturamento")
@@ -1896,7 +1896,7 @@ def render_bi() -> None:
             max_value = faturamento_cliente_df["faturamento"].max()
             fig.update_layout(showlegend=False, coloraxis_showscale=False, xaxis_title="", yaxis_title="")
             fig.update_xaxes(range=[0, max_value * 1.30 if max_value else 1])
-            st.plotly_chart(style_chart(fig, height=430), use_container_width=True)
+            st.plotly_chart(style_chart(fig, height=430), use_container_width=True, config={"staticPlot": False, "displayModeBar": False, "scrollZoom": False})
 
 
 

@@ -92,15 +92,17 @@ def section_title(title: str, caption: str = "") -> None:
     )
 
 
-def style_donut(fig, center_text: str, height: int = 340, bottom_margin: int = 36, revision_key: str = "donut-legend-stable"):
+def style_donut(fig, center_text: str, height: int = 360, bottom_margin: int = 60, revision_key: str = "donut-stable"):
     fig = style_chart(fig, height=height)
     fig.update_traces(
-        textinfo="percent+label",
+        textinfo="percent",
         textposition="inside",
         insidetextorientation="radial",
         textfont=dict(color="#f2f2f7", size=11, family="Inter, Aptos, Helvetica Neue, sans-serif"),
         hoverlabel=dict(font_size=13, bgcolor="#2c2c2e", font_color="#f2f2f7", bordercolor="#4ecdc4"),
         marker=dict(line=dict(color="#1c1c1e", width=2)),
+        # desativa animação de entrada
+        rotation=0,
     )
     fig.update_layout(
         annotations=[
@@ -109,7 +111,7 @@ def style_donut(fig, center_text: str, height: int = 340, bottom_margin: int = 3
                 x=0.5,
                 y=0.5,
                 showarrow=False,
-                font_size=16,
+                font_size=15,
                 font_color="#ffffff",
                 align="center",
             )
@@ -118,12 +120,17 @@ def style_donut(fig, center_text: str, height: int = 340, bottom_margin: int = 3
         legend=dict(
             orientation="h",
             yanchor="top",
-            y=-0.06,
+            y=-0.02,
             xanchor="center",
             x=0.5,
-            font=dict(size=11),
+            font=dict(size=11, color="#aeaeb2"),
+            itemsizing="constant",
+            traceorder="normal",
         ),
         margin=dict(l=12, r=12, t=18, b=bottom_margin),
         uirevision=revision_key,
+        # desativa todas as animações
+        transition=dict(duration=0),
+        dragmode=False,
     )
     return fig

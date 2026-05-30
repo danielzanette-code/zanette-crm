@@ -102,10 +102,20 @@ LOGIN_CSS = """
         margin-top: 8px;
     }
 
-    /* ── card ── */
+    /* ── card de vidro ── */
     .login-card-wrap {
         position: relative;
         z-index: 1;
+        background: rgba(28,28,30,0.72) !important;
+        backdrop-filter: blur(18px) !important;
+        -webkit-backdrop-filter: blur(18px) !important;
+        border: 1px solid rgba(255,255,255,0.08) !important;
+        border-radius: 16px !important;
+        padding: 24px 20px 20px !important;
+        box-shadow:
+            0 24px 60px rgba(0,0,0,0.55),
+            0 4px 16px rgba(0,0,0,0.4),
+            inset 0 1px 0 rgba(255,255,255,0.06) !important;
     }
 
     /* ── error ── */
@@ -130,9 +140,11 @@ LOGIN_CSS = """
     [data-testid="stVerticalBlock"] > div { margin-bottom: -8px !important; }
     div[data-testid="element-container"] { margin-bottom: 0 !important; }
 
-    [data-testid="stTextInput"] input {
+    [data-testid="stTextInput"] input,
+    [data-testid="stTextInput"] input[type="password"] {
         background: rgba(22,22,24,0.95) !important;
         border: 1px solid rgba(255,255,255,0.09) !important;
+        border-left: 1px solid rgba(255,255,255,0.09) !important;
         border-radius: 8px !important;
         color: #f2f2f7 !important;
         font-size: 14px !important;
@@ -140,6 +152,15 @@ LOGIN_CSS = """
         padding: 10px 14px !important;
         height: 46px !important;
         transition: all 180ms ease !important;
+        outline: none !important;
+        box-shadow: none !important;
+    }
+
+    /* remove qualquer borda extra do wrapper do campo senha */
+    [data-testid="stTextInput"] > div > div {
+        border: none !important;
+        background: transparent !important;
+        box-shadow: none !important;
     }
 
     [data-testid="stTextInput"] input:focus {

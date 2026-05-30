@@ -148,6 +148,43 @@ LOGIN_CSS = """
         background: rgba(28,28,30,1) !important;
     }
 
+    /* ── olho fora do campo, discreto como marca d'água ── */
+    [data-testid="stTextInput"] [data-testid="InputInstructions"] {
+        display: none !important;
+    }
+
+    [data-testid="stTextInput"] > div {
+        position: relative !important;
+    }
+
+    /* botão do olho — fora do input, à direita */
+    [data-testid="stTextInput"] button {
+        position: absolute !important;
+        right: -32px !important;
+        top: 50% !important;
+        transform: translateY(-50%) !important;
+        background: transparent !important;
+        border: none !important;
+        padding: 0 !important;
+        opacity: 0.18 !important;
+        transition: opacity 200ms ease !important;
+        box-shadow: none !important;
+        color: #ffffff !important;
+    }
+
+    [data-testid="stTextInput"] button:hover {
+        opacity: 0.45 !important;
+        background: transparent !important;
+        transform: translateY(-50%) !important;
+    }
+
+    [data-testid="stTextInput"] button svg {
+        width: 18px !important;
+        height: 18px !important;
+        fill: #ffffff !important;
+        stroke: #ffffff !important;
+    }
+
     [data-testid="stTextInput"] input::placeholder {
         color: rgba(255,255,255,0.35) !important;
         font-weight: 400 !important;

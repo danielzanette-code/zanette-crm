@@ -22,10 +22,28 @@ LOGIN_CSS = """
     }
 
     .main .block-container {
-        max-width: 190px !important;
+        max-width: 700px !important;
         padding-top: 0 !important;
         padding-bottom: 0 !important;
         margin: 0 auto !important;
+    }
+
+    /* form centralizado com largura fixa de 5cm (~190px) */
+    [data-testid="stForm"] {
+        width: 190px !important;
+        margin: 0 auto !important;
+    }
+
+    /* inputs: 5cm largura x 2cm altura */
+    [data-testid="stTextInput"] input {
+        width: 190px !important;
+        height: 76px !important;
+    }
+
+    div.stButton > button {
+        width: 190px !important;
+        margin: 0 auto !important;
+        display: block !important;
     }
 
     /* ── texto 360 de fundo ── */

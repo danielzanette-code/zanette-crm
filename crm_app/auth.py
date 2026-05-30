@@ -22,7 +22,7 @@ LOGIN_CSS = """
     }
 
     .main .block-container {
-        max-width: 340px !important;
+        max-width: 190px !important;
         padding-top: 0 !important;
         padding-bottom: 0 !important;
         margin: 0 auto !important;

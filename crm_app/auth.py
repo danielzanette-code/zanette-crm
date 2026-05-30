@@ -112,26 +112,40 @@ html, body, [class*="css"], .stApp {
 [data-testid="stTextInput"] label { display: none !important; }
 
 [data-testid="stTextInput"] input {
-    background: rgba(18,18,20,0.9) !important;
+    background: #161618 !important;
     border: 1px solid rgba(255,255,255,0.1) !important;
     border-radius: 8px !important;
     color: #f2f2f7 !important;
+    -webkit-text-fill-color: #f2f2f7 !important;
     font-size: 14px !important;
     font-family: 'Inter', sans-serif !important;
-    height: 76px !important;
+    height: 46px !important;
     padding: 0 14px !important;
     transition: border-color 180ms ease !important;
     box-shadow: none !important;
     outline: none !important;
+    -webkit-box-shadow: 0 0 0px 1000px #161618 inset !important;
 }
 
 [data-testid="stTextInput"] input::placeholder {
-    color: rgba(255,255,255,0.28) !important;
+    color: rgba(255,255,255,0.3) !important;
+    -webkit-text-fill-color: rgba(255,255,255,0.3) !important;
 }
 
 [data-testid="stTextInput"] input:focus {
     border-color: #4ecdc4 !important;
-    box-shadow: 0 0 0 3px rgba(78,205,196,0.12) !important;
+    -webkit-box-shadow: 0 0 0px 1000px #161618 inset, 0 0 0 3px rgba(78,205,196,0.12) !important;
+}
+
+/* fix autofill azul/branco do browser */
+[data-testid="stTextInput"] input:-webkit-autofill,
+[data-testid="stTextInput"] input:-webkit-autofill:hover,
+[data-testid="stTextInput"] input:-webkit-autofill:focus,
+[data-testid="stTextInput"] input:-webkit-autofill:active {
+    -webkit-box-shadow: 0 0 0px 1000px #161618 inset !important;
+    -webkit-text-fill-color: #f2f2f7 !important;
+    border: 1px solid rgba(255,255,255,0.1) !important;
+    transition: background-color 9999s ease-in-out 0s !important;
 }
 
 /* remove qualquer borda/fundo extra em todos os wrappers */
@@ -148,16 +162,18 @@ html, body, [class*="css"], .stApp {
 /* força os dois campos com o mesmo visual exato */
 [data-testid="stTextInput"] > div > div > div > input,
 [data-testid="stTextInput"] > div > div > div > div > input {
-    background: rgba(18,18,20,0.9) !important;
+    background: #161618 !important;
     border: 1px solid rgba(255,255,255,0.1) !important;
     border-radius: 8px !important;
     color: #f2f2f7 !important;
+    -webkit-text-fill-color: #f2f2f7 !important;
     font-size: 14px !important;
     height: 46px !important;
     padding: 0 14px !important;
     width: 100% !important;
     box-shadow: none !important;
     outline: none !important;
+    -webkit-box-shadow: 0 0 0px 1000px #161618 inset !important;
 }
 
 /* olho fora do campo */

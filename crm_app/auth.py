@@ -22,7 +22,7 @@ LOGIN_CSS = """
     }
 
     .main .block-container {
-        max-width: 400px !important;
+        max-width: 340px !important;
         padding-top: 0 !important;
         padding-bottom: 0 !important;
         margin: 0 auto !important;
@@ -131,16 +131,18 @@ LOGIN_CSS = """
     }
 
     [data-testid="stTextInput"] input::placeholder {
-        color: #3a3a3c !important;
+        color: rgba(255,255,255,0.35) !important;
+        font-weight: 400 !important;
     }
 
+    /* esconde os labels USUÁRIO / SENHA */
     [data-testid="stTextInput"] label {
-        color: #6c6c70 !important;
-        font-size: 10px !important;
-        font-weight: 700 !important;
-        letter-spacing: 0.12em !important;
-        text-transform: uppercase !important;
-        font-family: 'Inter', sans-serif !important;
+        display: none !important;
+    }
+
+    /* remove espaço do label escondido */
+    [data-testid="stTextInput"] > div:first-child {
+        display: none !important;
     }
 
     /* ── botão ── */
@@ -222,15 +224,16 @@ def render_login() -> bool:
         """
         <div id="login-bg">
             <svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" style="position:absolute;inset:0">
-                <polygon points="0,0 500,0 250,320"   fill="rgba(255,255,255,0.018)"/>
-                <polygon points="500,0 1100,0 800,380" fill="rgba(78,205,196,0.035)"/>
-                <polygon points="0,320 320,580 0,700"  fill="rgba(255,255,255,0.015)"/>
-                <polygon points="900,180 1400,0 1400,450" fill="rgba(78,205,196,0.025)"/>
-                <polygon points="650,380 980,180 1200,520 880,720" fill="rgba(255,255,255,0.018)"/>
-                <polygon points="0,550 420,420 320,820 0,900"      fill="rgba(78,205,196,0.02)"/>
-                <polygon points="750,620 1400,520 1400,950 1000,1000" fill="rgba(255,255,255,0.015)"/>
-                <polygon points="200,750 650,640 550,1000 120,1000"   fill="rgba(78,205,196,0.018)"/>
-                <polygon points="300,200 700,100 600,500 200,550"     fill="rgba(255,255,255,0.01)"/>
+                <polygon points="0,0 500,0 250,320"        fill="rgba(255,255,255,0.06)"/>
+                <polygon points="500,0 1100,0 800,380"     fill="rgba(78,205,196,0.07)"/>
+                <polygon points="0,320 320,580 0,700"      fill="rgba(255,255,255,0.045)"/>
+                <polygon points="900,180 1400,0 1400,450"  fill="rgba(78,205,196,0.06)"/>
+                <polygon points="650,380 980,180 1200,520 880,720" fill="rgba(255,255,255,0.05)"/>
+                <polygon points="0,550 420,420 320,820 0,900"      fill="rgba(78,205,196,0.055)"/>
+                <polygon points="750,620 1400,520 1400,950 1000,1000" fill="rgba(255,255,255,0.04)"/>
+                <polygon points="200,750 650,640 550,1000 120,1000"   fill="rgba(78,205,196,0.05)"/>
+                <polygon points="300,200 700,100 600,500 200,550"     fill="rgba(255,255,255,0.035)"/>
+                <polygon points="100,80 420,30 380,280 60,260"        fill="rgba(255,255,255,0.03)"/>
             </svg>
             <div id="login-watermark">360</div>
         </div>

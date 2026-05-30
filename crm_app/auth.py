@@ -22,7 +22,7 @@ LOGIN_CSS = """
     }
 
     .main .block-container {
-        max-width: 420px !important;
+        max-width: 400px !important;
         padding-top: 0 !important;
         padding-bottom: 0 !important;
         margin: 0 auto !important;
@@ -48,42 +48,40 @@ LOGIN_CSS = """
     /* ── header ── */
     .login-header {
         text-align: center;
-        padding: 72px 0 36px;
+        padding: 52px 0 24px;
         position: relative;
         z-index: 1;
     }
 
     .login-dot {
-        width: 10px;
-        height: 10px;
+        width: 8px;
+        height: 8px;
         background: #4ecdc4;
         border-radius: 50%;
         display: inline-block;
-        margin-bottom: 20px;
-        box-shadow: 0 0 16px rgba(78,205,196,0.6);
+        margin-bottom: 14px;
+        box-shadow: 0 0 14px rgba(78,205,196,0.7);
     }
 
     .login-title {
         color: #f2f2f7;
-        font-size: 32px;
+        font-size: 28px;
         font-weight: 900;
-        letter-spacing: -0.05em;
+        letter-spacing: -0.04em;
         text-transform: uppercase;
         margin: 0;
         line-height: 1;
     }
 
-    .login-title span {
-        color: #4ecdc4;
-    }
+    .login-title span { color: #4ecdc4; }
 
     .login-sub {
         color: #48484a;
-        font-size: 11px;
+        font-size: 10px;
         font-weight: 600;
         letter-spacing: 0.14em;
         text-transform: uppercase;
-        margin-top: 10px;
+        margin-top: 8px;
     }
 
     /* ── card ── */
@@ -110,17 +108,20 @@ LOGIN_CSS = """
         position: relative;
     }
 
+    /* reduz espaço entre widgets */
+    [data-testid="stVerticalBlock"] > div { margin-bottom: -8px !important; }
+    div[data-testid="element-container"] { margin-bottom: 0 !important; }
+
     [data-testid="stTextInput"] input {
-        background: rgba(28,28,30,0.9) !important;
-        border: 1px solid rgba(255,255,255,0.08) !important;
-        border-radius: 10px !important;
+        background: rgba(22,22,24,0.95) !important;
+        border: 1px solid rgba(255,255,255,0.09) !important;
+        border-radius: 8px !important;
         color: #f2f2f7 !important;
-        font-size: 15px !important;
+        font-size: 14px !important;
         font-family: 'Inter', sans-serif !important;
-        padding: 14px 16px !important;
-        height: 52px !important;
+        padding: 10px 14px !important;
+        height: 46px !important;
         transition: all 180ms ease !important;
-        backdrop-filter: blur(8px) !important;
     }
 
     [data-testid="stTextInput"] input:focus {
@@ -146,17 +147,17 @@ LOGIN_CSS = """
     div.stButton > button {
         background: linear-gradient(135deg, #4ecdc4, #38b2aa) !important;
         border: none !important;
-        border-radius: 10px !important;
+        border-radius: 8px !important;
         color: #111112 !important;
         font-size: 12px !important;
         font-weight: 800 !important;
-        height: 52px !important;
+        height: 46px !important;
         letter-spacing: 0.1em !important;
         text-transform: uppercase !important;
         width: 100% !important;
-        margin-top: 8px !important;
+        margin-top: 4px !important;
         font-family: 'Inter', sans-serif !important;
-        box-shadow: 0 4px 24px rgba(78,205,196,0.25) !important;
+        box-shadow: 0 4px 20px rgba(78,205,196,0.22) !important;
         transition: all 180ms ease !important;
     }
 
@@ -183,7 +184,7 @@ LOGIN_CSS = """
         color: #2c2c2e;
         font-size: 11px;
         text-align: center;
-        padding: 32px 0 48px;
+        padding: 18px 0 32px;
         letter-spacing: 0.04em;
         position: relative;
         z-index: 1;

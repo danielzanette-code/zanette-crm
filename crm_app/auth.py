@@ -140,13 +140,17 @@ iframe[title*="Status"] {
 
 /* card de vidro ao redor do form */
 [data-testid="stForm"] {
-    background: rgba(24,24,26,0.75) !important;
-    backdrop-filter: blur(20px) !important;
-    -webkit-backdrop-filter: blur(20px) !important;
-    border: 1px solid rgba(255,255,255,0.09) !important;
+    background: rgba(28,28,30,0.92) !important;
+    backdrop-filter: blur(26px) saturate(125%) !important;
+    -webkit-backdrop-filter: blur(26px) saturate(125%) !important;
+    border: 1px solid rgba(255,255,255,0.16) !important;
     border-radius: 14px !important;
     padding: 18px 20px 18px !important;
-    box-shadow: 0 32px 64px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.06) !important;
+    box-shadow:
+        0 24px 48px rgba(0,0,0,0.72),
+        0 0 0 1px rgba(78,205,196,0.08),
+        0 0 34px rgba(78,205,196,0.08),
+        inset 0 1px 0 rgba(255,255,255,0.12) !important;
 }
 
 /* inputs */

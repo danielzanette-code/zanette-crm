@@ -18,18 +18,32 @@ html, body, [class*="css"], .stApp {
 [data-testid="stMainBlockContainer"],
 .main .block-container,
 .block-container {
-    max-width: 420px !important;
-    padding: 0 20px !important;
+    max-width: 360px !important;
+    width: min(360px, calc(100vw - 32px)) !important;
+    padding: 0 14px !important;
     margin: 0 auto !important;
 }
 
 [data-testid="stVerticalBlock"],
 [data-testid="stLayoutWrapper"],
 [data-testid="stForm"] {
-    max-width: 380px !important;
+    max-width: 340px !important;
+    min-width: 0 !important;
     width: 100% !important;
     margin-left: auto !important;
     margin-right: auto !important;
+}
+
+[data-testid="stForm"]:has(input[placeholder="Usuário"]),
+[data-testid="stForm"]:has(input[placeholder="Senha"]) {
+    width: min(340px, calc(100vw - 32px)) !important;
+    max-width: 340px !important;
+}
+
+[data-testid="stForm"]:has(input[placeholder="Usuário"]) [data-testid="stVerticalBlock"],
+[data-testid="stForm"]:has(input[placeholder="Senha"]) [data-testid="stVerticalBlock"] {
+    max-width: 300px !important;
+    width: 100% !important;
 }
 
 /* fundo poligonal fixo */
@@ -68,7 +82,7 @@ html, body, [class*="css"], .stApp {
 /* header */
 .lg-header {
     text-align: center;
-    padding: 64px 0 28px;
+    padding: 58px 0 22px;
 }
 .lg-dot {
     width: 8px; height: 8px;
@@ -115,8 +129,8 @@ html, body, [class*="css"], .stApp {
     backdrop-filter: blur(20px) !important;
     -webkit-backdrop-filter: blur(20px) !important;
     border: 1px solid rgba(255,255,255,0.09) !important;
-    border-radius: 16px !important;
-    padding: 24px 20px 20px !important;
+    border-radius: 14px !important;
+    padding: 18px 20px 18px !important;
     box-shadow: 0 32px 64px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.06) !important;
 }
 
@@ -131,8 +145,9 @@ html, body, [class*="css"], .stApp {
     -webkit-text-fill-color: #f2f2f7 !important;
     font-size: 14px !important;
     font-family: 'Inter', sans-serif !important;
-    height: 46px !important;
-    padding: 0 14px !important;
+    height: 38px !important;
+    min-height: 38px !important;
+    padding: 0 12px !important;
     transition: border-color 180ms ease !important;
     box-shadow: none !important;
     outline: none !important;
@@ -163,12 +178,15 @@ html, body, [class*="css"], .stApp {
 /* remove qualquer borda/fundo extra em todos os wrappers */
 [data-testid="stTextInput"] > div,
 [data-testid="stTextInput"] > div > div,
-[data-testid="stTextInput"] > div > div > div {
+[data-testid="stTextInput"] > div > div > div,
+[data-testid="stTextInputRootElement"] {
     border: none !important;
     background: transparent !important;
     box-shadow: none !important;
     gap: 0 !important;
     padding: 0 !important;
+    height: 38px !important;
+    min-height: 38px !important;
 }
 
 /* força os dois campos com o mesmo visual exato */
@@ -180,8 +198,9 @@ html, body, [class*="css"], .stApp {
     color: #f2f2f7 !important;
     -webkit-text-fill-color: #f2f2f7 !important;
     font-size: 14px !important;
-    height: 46px !important;
-    padding: 0 14px !important;
+    height: 38px !important;
+    min-height: 38px !important;
+    padding: 0 12px !important;
     width: 100% !important;
     box-shadow: none !important;
     outline: none !important;
@@ -212,13 +231,14 @@ html, body, [class*="css"], .stApp {
 [data-testid="stFormSubmitButton"] button,
 [data-testid="stBaseButton-secondaryFormSubmit"],
 div.stButton > button {
-    background: linear-gradient(135deg, #4ecdc4 0%, #38b2aa 100%) !important;
+    background: #4ecdc4 !important;
     border: none !important;
     border-radius: 8px !important;
     color: #111112 !important;
     font-size: 12px !important;
     font-weight: 800 !important;
-    height: 48px !important;
+    height: 40px !important;
+    min-height: 40px !important;
     letter-spacing: 0.1em !important;
     text-transform: uppercase !important;
     font-family: 'Inter', sans-serif !important;
@@ -229,6 +249,7 @@ div.stButton > button {
 [data-testid="stFormSubmitButton"] button:hover,
 [data-testid="stBaseButton-secondaryFormSubmit"]:hover,
 div.stButton > button:hover {
+    background: #4ecdc4 !important;
     box-shadow: 0 6px 28px rgba(78,205,196,0.4) !important;
     transform: translateY(-1px) !important;
     filter: brightness(1.05) !important;

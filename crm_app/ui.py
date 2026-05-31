@@ -1062,21 +1062,29 @@ def empresa_form(prefix: str, empresa=None) -> dict[str, object]:
         email = st.text_input("E-mail", value=clean_text(empresa["email"] if empresa else ""), key=f"{prefix}_email")
 
     st.markdown("### Informações de produção do cliente")
-    p1, p2, p3 = st.columns(3)
+    p1, p2 = st.columns(2)
     capacidade_text = p1.text_input(
-        "Capacidade instalada (m²)",
+        "Capacidade instalada m²",
         value=format_br_number(empresa["capacidade_m2"] if empresa else 0, 2),
         help="Exemplo: 1.500.000,00",
         key=f"{prefix}_capacidade",
     )
     producao_text = p2.text_input(
-        "Produção m²",
+        "Produção atual m²",
         value=format_br_number(empresa["producao_m2"] if empresa else 0, 2),
         help="Exemplo: 600.000,00",
         key=f"{prefix}_producao",
     )
-    polido_text = p3.text_input(
-        "Produção m² polido",
+
+    p3, p4 = st.columns(2)
+    capacidade_polido_text = p3.text_input(
+        "Capacidade instalada polido m²",
+        value=format_br_number(empresa["capacidade_polido_m2"] if empresa else 0, 2),
+        help="Exemplo: 300.000,00",
+        key=f"{prefix}_capacidade_polido",
+    )
+    polido_text = p4.text_input(
+        "Produção atual polido m²",
         value=format_br_number(empresa["producao_polido_m2"] if empresa else 0, 2),
         help="Exemplo: 150.000,00",
         key=f"{prefix}_polido",
@@ -1090,6 +1098,7 @@ def empresa_form(prefix: str, empresa=None) -> dict[str, object]:
         "produtos_pesquisados": produtos_pesquisados,
         "capacidade_m2": parse_br_number(capacidade_text),
         "producao_m2": parse_br_number(producao_text),
+        "capacidade_polido_m2": parse_br_number(capacidade_polido_text),
         "producao_polido_m2": parse_br_number(polido_text),
         "regiao": clean_text(regiao).strip() or None,
         "cidade": clean_text(cidade).strip() or None,

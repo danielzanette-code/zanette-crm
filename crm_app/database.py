@@ -56,6 +56,7 @@ def ensure_schema() -> None:
                 produtos_pesquisados INTEGER,
                 capacidade_m2 REAL,
                 producao_m2 REAL,
+                capacidade_polido_m2 REAL,
                 producao_polido_m2 REAL,
                 regiao TEXT,
                 cidade TEXT,
@@ -82,6 +83,7 @@ def ensure_schema() -> None:
             "produtos_pesquisados": "INTEGER",
             "capacidade_m2": "REAL",
             "producao_m2": "REAL",
+            "capacidade_polido_m2": "REAL",
             "producao_polido_m2": "REAL",
         }
         for column, sql_type in empresa_extra_columns.items():
@@ -188,7 +190,7 @@ def tecnico_options() -> tuple[list[str], dict[str, int]]:
 def list_empresas(search: str = "", status: str = "Todos", tecnico_id: int | None = None) -> pd.DataFrame:
     query = """
         SELECT e.id, e.nome, e.segmento, e.tipologia, e.produtos_pesquisados,
-               e.capacidade_m2, e.producao_m2, e.producao_polido_m2,
+               e.capacidade_m2, e.producao_m2, e.capacidade_polido_m2, e.producao_polido_m2,
                e.regiao, e.cidade, e.estado, e.status, e.prioridade,
                t.nome AS tecnico, e.contato_principal, e.telefone, e.email, e.atualizado_em
         FROM empresas e
@@ -231,6 +233,7 @@ def save_empresa(payload: dict[str, object], empresa_id: int | None = None) -> i
         payload.get("produtos_pesquisados"),
         payload.get("capacidade_m2"),
         payload.get("producao_m2"),
+        payload.get("capacidade_polido_m2"),
         payload.get("producao_polido_m2"),
         payload.get("regiao"),
         payload.get("cidade"),
@@ -252,7 +255,7 @@ def save_empresa(payload: dict[str, object], empresa_id: int | None = None) -> i
                 """
                 UPDATE empresas
                 SET nome = ?, segmento = ?, tipologia = ?, produtos_pesquisados = ?,
-                    capacidade_m2 = ?, producao_m2 = ?, producao_polido_m2 = ?,
+                    capacidade_m2 = ?, producao_m2 = ?, capacidade_polido_m2 = ?, producao_polido_m2 = ?,
                     regiao = ?, cidade = ?, estado = ?, status = ?, prioridade = ?,
                     tecnico_id = ?, contato_principal = ?, telefone = ?, email = ?, observacoes = ?,
                     atualizado_em = ?
@@ -266,10 +269,10 @@ def save_empresa(payload: dict[str, object], empresa_id: int | None = None) -> i
                 """
                 INSERT INTO empresas (
                     nome, segmento, tipologia, produtos_pesquisados, capacidade_m2, producao_m2,
-                    producao_polido_m2, regiao, cidade, estado, status, prioridade, tecnico_id,
+                    capacidade_polido_m2, producao_polido_m2, regiao, cidade, estado, status, prioridade, tecnico_id,
                     contato_principal, telefone, email, observacoes, criado_em, atualizado_em
                 )
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 values + (timestamp, timestamp),
             )

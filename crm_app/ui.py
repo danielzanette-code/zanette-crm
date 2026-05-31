@@ -13,7 +13,6 @@ from crm_app.helpers import (
     format_br_number,
     format_brl,
     format_quantity,
-    format_usd,
     kpi_card,
     parse_br_number,
     section_title,
@@ -21,8 +20,7 @@ from crm_app.helpers import (
     render_static_donut,
 )
 from crm_app.inteligencia_mercado.ui import render_inteligencia_mercado
-from crm_app.inteligencia_mercado.data import fetch_news_categoria, fetch_radar_economico
-from crm_app.security import safe_html, safe_url
+from crm_app.security import safe_html
 from crm_app.database import (
     PRIORIDADES,
     STATUS_CLIENTE,
@@ -573,34 +571,6 @@ CSS = """
         margin: 0 0 6px;
     }
 
-    /* ── news panel ──────────────────────────────────────────────────── */
-    .news-panel-title {
-        color: var(--ink);
-        font-size: 14px;
-        font-weight: 700;
-        letter-spacing: -0.01em;
-        margin: 0 0 10px;
-    }
-
-    .news-item {
-        padding: 9px 0;
-        border-top: 1px solid var(--border);
-    }
-    .news-item:first-of-type { border-top: none; padding-top: 0; }
-
-    .news-link {
-        display: block;
-        color: #ffffff !important;
-        font-size: 13px;
-        font-weight: 600;
-        line-height: 1.4;
-        text-decoration: none;
-        margin-bottom: 3px;
-    }
-    .news-link:hover { text-decoration: underline; }
-
-    .news-meta { color: var(--muted); font-size: 11px; }
-
     /* ── forms / inputs ──────────────────────────────────────────────── */
     [data-testid="stForm"] {
         background: var(--bg-card);
@@ -758,34 +728,6 @@ CSS = """
         font-weight: 700;
     }
 
-    .news-panel-title {
-        color: var(--ink);
-        font-size: 12px;
-        font-weight: 800;
-        letter-spacing: 0.08em;
-        text-transform: uppercase;
-        margin: 0 0 10px;
-        font-family: var(--font-sans) !important;
-    }
-
-    .news-item {
-        padding: 9px 0;
-        border-top: 1px solid var(--border);
-    }
-    .news-item:first-of-type { border-top: none; padding-top: 0; }
-
-    .news-link {
-        display: block;
-        color: #ffffff !important;
-        font-size: 13px;
-        font-weight: 600;
-        line-height: 1.4;
-        text-decoration: none;
-        margin-bottom: 3px;
-    }
-    .news-link:hover { text-decoration: underline; }
-    .news-meta { color: var(--muted); font-size: 11px; }
-
     /* ── pills / pills active ────────────────────────────────────────── */
     [data-testid="stBaseButton-pillsActive"] {
         background: #4ecdc4 !important;
@@ -875,52 +817,6 @@ def render_metrics() -> None:
     with c4:
         metric_card("Produção polido", f"{format_quantity(polido_total)} m²", "Volume polido registrado")
 
-
-
-def fetch_market_snapshot() -> dict[str, object]:
-    snap = fetch_radar_economico()
-    return {
-        "usd_brl": snap.get("usd_brl"),
-        "usd_brl_change": snap.get("usd_brl_change"),
-        "wti_usd": snap.get("wti_usd"),
-        "wti_change": snap.get("wti_change"),
-        "updated_at": snap.get("updated_at"),
-    }
-
-
-def market_tile(title: str, value: str, note: str = "") -> None:
-    st.markdown(
-        f"""
-        <div class="bi-kpi">
-            <div class="bi-kpi-label">{safe_html(title)}</div>
-            <div class="bi-kpi-value">{safe_html(value)}</div>
-            <div class="crm-metric-note">{safe_html(note)}</div>
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
-
-
-def render_news_block(title: str, query: str) -> None:
-    news_items = fetch_news_categoria(query, limit=3)
-
-    st.markdown(f'<div class="news-panel-title">{safe_html(title)}</div>', unsafe_allow_html=True)
-
-    if not news_items:
-        st.info("Não foi possível atualizar este bloco agora.")
-        return
-
-    for item in news_items:
-        source = item["source"] or "Fonte pública"
-        st.markdown(
-            f"""
-            <div class="news-item">
-                <a class="news-link" href="{safe_url(item['link'])}" target="_blank" rel="noopener noreferrer">{safe_html(item['title'])}</a>
-                <div class="news-meta">{safe_html(source)}</div>
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
 
 
 def chart_card(title: str, subtitle: str = "", metric: str | None = None) -> None:
@@ -1880,35 +1776,6 @@ def render_bi() -> None:
 
 
 
-@st.fragment
-def render_visao() -> None:
-    section_title("Visão Geral", "Consulta rápida da carteira, histórico registrado e base atual do CRM.")
-    snapshot = fetch_market_snapshot()
-
-    st.markdown("### Radar Diário")
-    t1, t2, t3 = st.columns(3)
-    with t1:
-        usd_value = format_brl(snapshot["usd_brl"]) if snapshot.get("usd_brl") else "--"
-        usd_note = f"Variação {format_br_number(snapshot['usd_brl_change'], 2)}%" if snapshot.get("usd_brl_change") is not None else "Sem atualização"
-        market_tile("Dólar comercial", usd_value, usd_note)
-    with t2:
-        oil_value = format_usd(snapshot["wti_usd"]) if snapshot.get("wti_usd") else "--"
-        oil_note = f"Variação {format_br_number(snapshot['wti_change'], 2)}%" if snapshot.get("wti_change") is not None else "Sem atualização"
-        market_tile("Petróleo WTI", oil_value, oil_note)
-    with t3:
-        market_tile("Atualizado em", snapshot.get("updated_at", "--"), "Dados públicos e notícias automáticas")
-
-    n1, n2, n3, n4 = st.columns(4)
-    with n1:
-        render_news_block("Construção civil", "construcao civil mercado brasil")
-    with n2:
-        render_news_block("Gás e petróleo", "gas petroleo energia brasil")
-    with n3:
-        render_news_block("Economia e mercado", "economia brasil mercado financeiro")
-    with n4:
-        render_news_block("Transporte e logística", "transporte logistica frete brasil")
-
-
 def _prewarm_cache() -> None:
     """Dispara o fetch do radar em background para que o cache já esteja pronto."""
     import threading
@@ -1934,8 +1801,6 @@ def run_app() -> None:
     )
     with tab1:
         render_bi()
-        st.markdown('<div class="crm-subtle-divider"></div>', unsafe_allow_html=True)
-        render_visao()
     with tab2:
         render_inteligencia_mercado()
     with tab3:

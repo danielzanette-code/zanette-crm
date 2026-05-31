@@ -3,6 +3,8 @@ from __future__ import annotations
 import streamlit as st
 import plotly.graph_objects as go
 
+from crm_app.security import safe_html
+
 CHART_COLORS = ["#4ecdc4", "#aeaeb2", "#6c6c70", "#8e8e93", "#636366", "#2c2c2e", "#38b2aa"]
 
 
@@ -73,11 +75,13 @@ def style_chart(fig, height: int = 390):
 
 
 def kpi_card(label: str, value) -> None:
+    safe_label = safe_html(label)
+    safe_value = safe_html(value)
     st.markdown(
         f"""
         <div class="bi-kpi">
-            <div class="bi-kpi-label">{label}</div>
-            <div class="bi-kpi-value">{value}</div>
+            <div class="bi-kpi-label">{safe_label}</div>
+            <div class="bi-kpi-value">{safe_value}</div>
         </div>
         """,
         unsafe_allow_html=True,
@@ -85,9 +89,9 @@ def kpi_card(label: str, value) -> None:
 
 
 def section_title(title: str, caption: str = "") -> None:
-    caption_html = f'<div class="crm-section-caption">{caption}</div>' if caption else ""
+    caption_html = f'<div class="crm-section-caption">{safe_html(caption)}</div>' if caption else ""
     st.markdown(
-        f'<div class="crm-section-title">{title}</div>{caption_html}',
+        f'<div class="crm-section-title">{safe_html(title)}</div>{caption_html}',
         unsafe_allow_html=True,
     )
 

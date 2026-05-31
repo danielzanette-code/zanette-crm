@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import hashlib
+import hmac
 import streamlit as st
 
 LOGIN_CSS = """
@@ -14,10 +15,21 @@ html, body, [class*="css"], .stApp {
 
 #MainMenu, footer, header { visibility: hidden; }
 
-.main .block-container {
-    max-width: 265px !important;
+[data-testid="stMainBlockContainer"],
+.main .block-container,
+.block-container {
+    max-width: 420px !important;
     padding: 0 20px !important;
     margin: 0 auto !important;
+}
+
+[data-testid="stVerticalBlock"],
+[data-testid="stLayoutWrapper"],
+[data-testid="stForm"] {
+    max-width: 380px !important;
+    width: 100% !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
 }
 
 /* fundo poligonal fixo */
@@ -197,6 +209,8 @@ html, body, [class*="css"], .stApp {
 }
 
 /* botão entrar */
+[data-testid="stFormSubmitButton"] button,
+[data-testid="stBaseButton-secondaryFormSubmit"],
 div.stButton > button {
     background: linear-gradient(135deg, #4ecdc4 0%, #38b2aa 100%) !important;
     border: none !important;
@@ -204,7 +218,7 @@ div.stButton > button {
     color: #111112 !important;
     font-size: 12px !important;
     font-weight: 800 !important;
-    height: 76px !important;
+    height: 48px !important;
     letter-spacing: 0.1em !important;
     text-transform: uppercase !important;
     font-family: 'Inter', sans-serif !important;
@@ -212,6 +226,8 @@ div.stButton > button {
     transition: all 180ms ease !important;
     margin-top: 4px !important;
 }
+[data-testid="stFormSubmitButton"] button:hover,
+[data-testid="stBaseButton-secondaryFormSubmit"]:hover,
 div.stButton > button:hover {
     box-shadow: 0 6px 28px rgba(78,205,196,0.4) !important;
     transform: translateY(-1px) !important;
@@ -231,8 +247,33 @@ div.stButton > button:hover {
 """
 
 
+from crm_app.security import (
+    esta_bloqueado,
+    gerar_csrf_token,
+    registrar_tentativa_falha,
+    resetar_tentativas,
+    sanitize_input,
+    tentativas_restantes,
+    validar_usuario,
+)
+
+
 def _hash(p: str) -> str:
+    salt = "360IM@zanette#crm"
+    return hashlib.sha256(f"{salt}{p}".encode()).hexdigest()
+
+
+def _legacy_hash(p: str) -> str:
     return hashlib.sha256(p.encode()).hexdigest()
+
+
+def _password_matches(password: str, stored_hash: str) -> bool:
+    """Aceita hash novo com salt e hash legado para não bloquear usuários existentes."""
+    if not stored_hash:
+        return False
+    return hmac.compare_digest(stored_hash, _hash(password)) or hmac.compare_digest(
+        stored_hash, _legacy_hash(password)
+    )
 
 
 def _get_credentials() -> dict[str, str]:
@@ -248,6 +289,9 @@ def render_login() -> bool:
 
     st.markdown(LOGIN_CSS, unsafe_allow_html=True)
 
+    # gera token CSRF da sessão
+    gerar_csrf_token()
+
     st.markdown(
         """
         <div class="lg-header">
@@ -259,11 +303,25 @@ def render_login() -> bool:
         unsafe_allow_html=True,
     )
 
-    if st.session_state.get("login_error"):
+    # ── verifica bloqueio por rate limiting ───────────────────────────────
+    bloqueado, segundos = esta_bloqueado()
+    if bloqueado:
+        minutos = segundos // 60
+        segundos_r = segundos % 60
         st.markdown(
-            '<div class="lg-error">Usuário ou senha incorretos.</div>',
+            f'<div class="lg-error">🔒 Muitas tentativas. Aguarde {minutos}m {segundos_r}s para tentar novamente.</div>',
             unsafe_allow_html=True,
         )
+        st.stop()
+        return False
+
+    # ── mensagem de erro ──────────────────────────────────────────────────
+    if st.session_state.get("login_error"):
+        restantes = tentativas_restantes()
+        msg = "Usuário ou senha incorretos."
+        if restantes <= 2:
+            msg += f" {restantes} tentativa(s) restante(s)."
+        st.markdown(f'<div class="lg-error">{msg}</div>', unsafe_allow_html=True)
 
     with st.form("login_form", clear_on_submit=False):
         usuario = st.text_input("u", placeholder="Usuário", label_visibility="collapsed")
@@ -271,14 +329,25 @@ def render_login() -> bool:
         entrar  = st.form_submit_button("Entrar →", use_container_width=True)
 
     if entrar:
+        # sanitiza inputs antes de qualquer verificação
+        usuario_clean = sanitize_input(usuario)
+
+        # valida formato do usuário
+        if not validar_usuario(usuario_clean):
+            st.session_state["login_error"] = True
+            registrar_tentativa_falha(usuario_clean)
+            st.rerun()
+
         creds = _get_credentials()
-        if usuario in creds and creds[usuario] == _hash(senha):
+        if usuario_clean in creds and _password_matches(senha, creds[usuario_clean]):
             st.session_state["authenticated"] = True
-            st.session_state["usuario"] = usuario
+            st.session_state["usuario"] = usuario_clean
             st.session_state.pop("login_error", None)
+            resetar_tentativas()
             st.rerun()
         else:
             st.session_state["login_error"] = True
+            registrar_tentativa_falha(usuario_clean)
             st.rerun()
 
     st.markdown(
@@ -290,6 +359,8 @@ def render_login() -> bool:
 
 
 def logout() -> None:
-    st.session_state.pop("authenticated", None)
-    st.session_state.pop("usuario", None)
+    from crm_app.security import resetar_tentativas
+    resetar_tentativas()
+    for key in ["authenticated", "usuario", "_last_active", "_csrf", "login_error"]:
+        st.session_state.pop(key, None)
     st.rerun()

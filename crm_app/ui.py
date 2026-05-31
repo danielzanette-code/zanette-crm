@@ -2,12 +2,9 @@ from __future__ import annotations
 
 from datetime import date, datetime
 import sqlite3
-from urllib.parse import quote_plus
-import xml.etree.ElementTree as ET
 
 import pandas as pd
 import plotly.express as px
-import requests
 import streamlit as st
 
 from crm_app.helpers import (
@@ -24,6 +21,8 @@ from crm_app.helpers import (
     style_donut,
 )
 from crm_app.inteligencia_mercado.ui import render_inteligencia_mercado
+from crm_app.inteligencia_mercado.data import fetch_news_categoria, fetch_radar_economico
+from crm_app.security import safe_html, safe_url
 from crm_app.database import (
     PRIORIDADES,
     STATUS_CLIENTE,
@@ -608,52 +607,6 @@ CSS = """
         background: var(--border);
     }
 
-    .crm-status-pill {
-        display: inline-block;
-        border-radius: 999px;
-        padding: 3px 10px;
-        font-size: 10px;
-        font-weight: 700;
-        letter-spacing: 0.07em;
-        text-transform: uppercase;
-        white-space: nowrap;
-    }
-
-    .bi-card {
-        background: var(--bg-card);
-        border: 1px solid var(--border);
-        border-radius: var(--radius-md);
-        padding: 14px 18px;
-        box-shadow: var(--shadow-sm);
-        margin-bottom: 10px;
-    }
-
-    .bi-card-title {
-        color: var(--ink);
-        font-size: 15px;
-        font-weight: 700;
-        letter-spacing: -0.015em;
-        margin: 0;
-    }
-
-    .bi-card-metric {
-        color: var(--accent);
-        background: var(--accent-soft);
-        border-radius: 999px;
-        padding: 4px 10px;
-        font-size: 12px;
-        font-weight: 700;
-    }
-
-    .bi-filter-shell {
-        background: var(--bg-card);
-        border: 1px solid var(--border);
-        border-radius: var(--radius-md);
-        padding: 14px 16px 6px;
-        box-shadow: var(--shadow-sm);
-        margin: 8px 0 16px;
-    }
-
     .bi-filter-title {
         color: var(--muted);
         font-size: 10px;
@@ -662,15 +615,6 @@ CSS = """
         text-transform: uppercase;
         margin-bottom: 4px;
         font-family: var(--font-sans) !important;
-    }
-
-    .share-filter-label {
-        color: var(--muted);
-        font-size: 10px;
-        font-weight: 700;
-        letter-spacing: 0.07em;
-        text-transform: uppercase;
-        margin: 4px 0 2px;
     }
 
     .donut-title {
@@ -748,6 +692,8 @@ CSS = """
 </style>
 """
 
+DONUT_CONFIG = {"staticPlot": True, "displayModeBar": False, "scrollZoom": False}
+
 def render_header() -> None:
     m = metrics()
     st.markdown(
@@ -786,9 +732,9 @@ def metric_card(label: str, value: int | str, note: str) -> None:
     st.markdown(
         f"""
         <div class="crm-metric-card">
-            <div class="crm-metric-label">{label}</div>
-            <div class="crm-metric-value">{value}</div>
-            <div class="crm-metric-note">{note}</div>
+            <div class="crm-metric-label">{safe_html(label)}</div>
+            <div class="crm-metric-value">{safe_html(value)}</div>
+            <div class="crm-metric-note">{safe_html(note)}</div>
         </div>
         """,
         unsafe_allow_html=True,
@@ -825,77 +771,24 @@ def render_metrics() -> None:
 
 
 
-@st.cache_data(ttl=1800, show_spinner=False)
 def fetch_market_snapshot() -> dict[str, object]:
-    snapshot: dict[str, object] = {
-        "usd_brl": None,
-        "usd_brl_change": None,
-        "wti_usd": None,
-        "wti_change": None,
-        "updated_at": datetime.now().strftime("%d/%m/%Y %H:%M"),
+    snap = fetch_radar_economico()
+    return {
+        "usd_brl": snap.get("usd_brl"),
+        "usd_brl_change": snap.get("usd_brl_change"),
+        "wti_usd": snap.get("wti_usd"),
+        "wti_change": snap.get("wti_change"),
+        "updated_at": snap.get("updated_at"),
     }
-
-    try:
-        response = requests.get("https://economia.awesomeapi.com.br/json/last/USD-BRL", timeout=8)
-        response.raise_for_status()
-        usd_data = response.json().get("USDBRL", {})
-        if usd_data:
-            snapshot["usd_brl"] = float(usd_data.get("bid") or 0)
-            snapshot["usd_brl_change"] = float(usd_data.get("pctChange") or 0)
-    except Exception:
-        pass
-
-    try:
-        response = requests.get("https://stooq.com/q/l/?s=cl.f&i=d", timeout=8)
-        response.raise_for_status()
-        lines = [line.strip() for line in response.text.splitlines() if line.strip()]
-        if len(lines) >= 2:
-            headers = [item.strip().lower() for item in lines[0].split(",")]
-            values = [item.strip() for item in lines[1].split(",")]
-            data = dict(zip(headers, values))
-            close_value = data.get("close") or data.get("last")
-            change_value = data.get("change")
-            if close_value and close_value.lower() != "n/d":
-                snapshot["wti_usd"] = float(close_value)
-            if change_value and change_value.lower() != "n/d":
-                snapshot["wti_change"] = float(change_value)
-    except Exception:
-        pass
-
-    return snapshot
-
-
-@st.cache_data(ttl=1800, show_spinner=False)
-def fetch_news_feed(query: str, limit: int = 3) -> list[dict[str, str]]:
-    url = f"https://news.google.com/rss/search?q={quote_plus(query)}&hl=pt-BR&gl=BR&ceid=BR:pt-419"
-    response = requests.get(url, timeout=10, headers={"User-Agent": "Mozilla/5.0"})
-    response.raise_for_status()
-    root = ET.fromstring(response.content)
-
-    items: list[dict[str, str]] = []
-    for item in root.findall(".//item")[:limit]:
-        title = clean_text(item.findtext("title")).strip()
-        link = clean_text(item.findtext("link")).strip()
-        pub_date = clean_text(item.findtext("pubDate")).strip()
-        source = clean_text(item.findtext("source")).strip()
-        items.append(
-            {
-                "title": title,
-                "link": link,
-                "pub_date": pub_date,
-                "source": source,
-            }
-        )
-    return items
 
 
 def market_tile(title: str, value: str, note: str = "") -> None:
     st.markdown(
         f"""
         <div class="bi-kpi">
-            <div class="bi-kpi-label">{title}</div>
-            <div class="bi-kpi-value">{value}</div>
-            <div class="crm-metric-note">{note}</div>
+            <div class="bi-kpi-label">{safe_html(title)}</div>
+            <div class="bi-kpi-value">{safe_html(value)}</div>
+            <div class="crm-metric-note">{safe_html(note)}</div>
         </div>
         """,
         unsafe_allow_html=True,
@@ -903,12 +796,9 @@ def market_tile(title: str, value: str, note: str = "") -> None:
 
 
 def render_news_block(title: str, query: str) -> None:
-    try:
-        news_items = fetch_news_feed(query)
-    except Exception:
-        news_items = []
+    news_items = fetch_news_categoria(query, limit=3)
 
-    st.markdown(f'<div class="news-panel-title">{title}</div>', unsafe_allow_html=True)
+    st.markdown(f'<div class="news-panel-title">{safe_html(title)}</div>', unsafe_allow_html=True)
 
     if not news_items:
         st.info("Não foi possível atualizar este bloco agora.")
@@ -919,8 +809,8 @@ def render_news_block(title: str, query: str) -> None:
         st.markdown(
             f"""
             <div class="news-item">
-                <a class="news-link" href="{item['link']}" target="_blank">{item['title']}</a>
-                <div class="news-meta">{source}</div>
+                <a class="news-link" href="{safe_url(item['link'])}" target="_blank" rel="noopener noreferrer">{safe_html(item['title'])}</a>
+                <div class="news-meta">{safe_html(source)}</div>
             </div>
             """,
             unsafe_allow_html=True,
@@ -928,11 +818,11 @@ def render_news_block(title: str, query: str) -> None:
 
 
 def chart_card(title: str, subtitle: str = "", metric: str | None = None) -> None:
-    metric_html = f'<div class="chart-heading-metric">{metric}</div>' if metric else ""
+    metric_html = f'<div class="chart-heading-metric">{safe_html(metric)}</div>' if metric else ""
     st.markdown(
         f"""
         <div class="chart-heading">
-            <div class="chart-heading-title">{title}</div>
+            <div class="chart-heading-title">{safe_html(title)}</div>
             {metric_html}
         </div>
         """,
@@ -941,7 +831,7 @@ def chart_card(title: str, subtitle: str = "", metric: str | None = None) -> Non
 
 
 def donut_title(title: str) -> None:
-    st.markdown(f'<div class="donut-title">{title}</div>', unsafe_allow_html=True)
+    st.markdown(f'<div class="donut-title">{safe_html(title)}</div>', unsafe_allow_html=True)
 
 
 def reset_bi_filters() -> None:
@@ -1115,7 +1005,7 @@ def render_empresas() -> None:
     if modo == "Cadastrar":
         with st.form("empresa_nova_form"):
             payload = empresa_form("nova")
-            submitted = st.form_submit_button("Cadastrar cliente", use_container_width=True, config={"staticPlot": False, "displayModeBar": False, "scrollZoom": False})
+            submitted = st.form_submit_button("Cadastrar cliente", use_container_width=True)
         if submitted:
             try:
                 empresa_id = save_empresa(payload)
@@ -1164,8 +1054,8 @@ def render_empresas() -> None:
     with st.form(f"empresa_editar_{empresa_id}"):
         payload = empresa_form(f"editar_{empresa_id}", empresa)
         save_col, delete_col = st.columns(2)
-        submitted = save_col.form_submit_button("Salvar alterações", use_container_width=True, config={"staticPlot": False, "displayModeBar": False, "scrollZoom": False})
-        delete_submitted = delete_col.form_submit_button("Apagar cliente", use_container_width=True, config={"staticPlot": False, "displayModeBar": False, "scrollZoom": False})
+        submitted = save_col.form_submit_button("Salvar alterações", use_container_width=True)
+        delete_submitted = delete_col.form_submit_button("Apagar cliente", use_container_width=True)
 
     if submitted:
         try:
@@ -1187,7 +1077,7 @@ def render_empresas() -> None:
             "Isso também remove produtos e interações desse cliente."
         )
         confirm_col, cancel_col = st.columns(2)
-        if confirm_col.button("Confirmar exclusão", use_container_width=True, config={"staticPlot": False, "displayModeBar": False, "scrollZoom": False}):
+        if confirm_col.button("Confirmar exclusão", use_container_width=True):
             delete_empresa(empresa_id)
             st.session_state.pop("delete_client_id", None)
             st.session_state.pop("delete_client_name", None)
@@ -1195,7 +1085,7 @@ def render_empresas() -> None:
                 st.session_state.pop("selected_empresa_id", None)
             st.success("Cliente apagado.")
             st.rerun()
-        if cancel_col.button("Cancelar exclusão", use_container_width=True, config={"staticPlot": False, "displayModeBar": False, "scrollZoom": False}):
+        if cancel_col.button("Cancelar exclusão", use_container_width=True):
             st.session_state.pop("delete_client_id", None)
             st.session_state.pop("delete_client_name", None)
             st.rerun()
@@ -1221,9 +1111,9 @@ def render_produtos_for_empresa(empresa_id: int, empresa_nome: str) -> None:
     section_title("Produtos do Cliente", f"Cadastro e edição de produtos vinculados a {empresa_nome}.")
 
     c1, c2, c3 = st.columns([1, 1, 1])
-    if c1.button("Adicionar produto", key=f"add_prod_{empresa_id}", use_container_width=True, config={"staticPlot": False, "displayModeBar": False, "scrollZoom": False}):
+    if c1.button("Adicionar produto", key=f"add_prod_{empresa_id}", use_container_width=True):
         st.session_state["show_product_form"] = True
-    if c2.button("Fechar formulário", key=f"close_prod_{empresa_id}", use_container_width=True, config={"staticPlot": False, "displayModeBar": False, "scrollZoom": False}):
+    if c2.button("Fechar formulário", key=f"close_prod_{empresa_id}", use_container_width=True):
         st.session_state["show_product_form"] = False
 
     produtos = list_produtos_cliente(empresa_id=empresa_id)
@@ -1254,7 +1144,7 @@ def render_produtos_for_empresa(empresa_id: int, empresa_nome: str) -> None:
             valor_text = p3.text_input("Valor unitário (R$)", placeholder="Ex.: 6,50", key=f"produto_valor_novo_{empresa_id}")
             fornecedor = st.text_input("Fornecedor atual", placeholder="Ex.: fornecedor usado hoje", key=f"produto_fornecedor_novo_{empresa_id}")
             observacoes = st.text_area("Observações", height=90, key=f"produto_obs_novo_{empresa_id}")
-            submitted = st.form_submit_button("Salvar produto", use_container_width=True, config={"staticPlot": False, "displayModeBar": False, "scrollZoom": False})
+            submitted = st.form_submit_button("Salvar produto", use_container_width=True)
 
         if submitted:
             try:
@@ -1310,10 +1200,10 @@ def render_produtos_for_empresa(empresa_id: int, empresa_nome: str) -> None:
         st.session_state[edit_state_key] = False
 
     edit_col, cancel_col = st.columns(2)
-    if edit_col.button("Editar tabela", key=f"edit_table_btn_{empresa_id}", use_container_width=True, config={"staticPlot": False, "displayModeBar": False, "scrollZoom": False}):
+    if edit_col.button("Editar tabela", key=f"edit_table_btn_{empresa_id}", use_container_width=True):
         st.session_state[edit_state_key] = True
     if st.session_state[edit_state_key]:
-        if cancel_col.button("Fechar edição", key=f"cancel_table_btn_{empresa_id}", use_container_width=True, config={"staticPlot": False, "displayModeBar": False, "scrollZoom": False}):
+        if cancel_col.button("Fechar edição", key=f"cancel_table_btn_{empresa_id}", use_container_width=True):
             st.session_state[edit_state_key] = False
             st.rerun()
 
@@ -1351,7 +1241,7 @@ def render_produtos_for_empresa(empresa_id: int, empresa_nome: str) -> None:
                 disabled=["ID"],
                 key=f"editor_produtos_{empresa_id}",
             )
-            salvar_tabela = st.form_submit_button("Salvar alterações da tabela", use_container_width=True, config={"staticPlot": False, "displayModeBar": False, "scrollZoom": False})
+            salvar_tabela = st.form_submit_button("Salvar alterações da tabela", use_container_width=True)
 
         if salvar_tabela:
             try:
@@ -1413,7 +1303,7 @@ def render_tecnicos() -> None:
             nome = st.text_input("Nome")
             email = st.text_input("E-mail")
             telefone = st.text_input("Telefone")
-            submitted = st.form_submit_button("Cadastrar técnico", use_container_width=True, config={"staticPlot": False, "displayModeBar": False, "scrollZoom": False})
+            submitted = st.form_submit_button("Cadastrar técnico", use_container_width=True)
         if submitted:
             try:
                 add_tecnico(nome, email, telefone)
@@ -1460,7 +1350,7 @@ def render_interacoes() -> None:
             capacidade_text = c1.text_input("Capacidade m²", placeholder="Ex.: 1.500.000,00")
             producao_text = c2.text_input("Produção m²", placeholder="Ex.: 600.000,00")
             consumo_text = c3.text_input("Consumo kg", placeholder="Ex.: 1.000,00")
-            submitted = st.form_submit_button("Salvar interação", use_container_width=True, config={"staticPlot": False, "displayModeBar": False, "scrollZoom": False})
+            submitted = st.form_submit_button("Salvar interação", use_container_width=True)
         if submitted:
             try:
                 add_interacao(
@@ -1637,14 +1527,14 @@ def render_bi() -> None:
                     hovertemplate="<b>%{label}</b><br>Produção: %{customdata} m²<br>Participação: %{percent}<extra></extra>",
                     customdata=comparativo_df["valor"].map(format_quantity),
                 )
-                st.plotly_chart(style_donut(fig, f"{cliente_sel}<br>{(producao_cliente / total_producao_mercado):.1%}"), use_container_width=True, key="donut_prod_comp", config={"displayModeBar": False})
+                st.plotly_chart(style_donut(fig, f"{cliente_sel}<br>{(producao_cliente / total_producao_mercado):.1%}"), use_container_width=True, key="donut_prod_comp", config=DONUT_CONFIG)
             else:
                 fig = px.pie(regiao_df, names="regiao", values="producao_m2", hole=0.62, color_discrete_sequence=CHART_COLORS)
                 fig.update_traces(
                     hovertemplate="<b>%{label}</b><br>Produção: %{customdata} m²<br>Participação: %{percent}<extra></extra>",
                     customdata=regiao_df["producao_m2"].map(format_quantity),
                 )
-                st.plotly_chart(style_donut(fig, f"{format_quantity(regiao_df['producao_m2'].sum())}<br>m²"), use_container_width=True, key="donut_prod_regiao", config={"displayModeBar": False})
+                st.plotly_chart(style_donut(fig, f"{format_quantity(regiao_df['producao_m2'].sum())}<br>m²"), use_container_width=True, key="donut_prod_regiao", config=DONUT_CONFIG)
 
     with col_mix:
         donut_title("Mix por Tipologia")
@@ -1669,10 +1559,10 @@ def render_bi() -> None:
                     }
                 )
                 fig = px.pie(comparativo_df, names="grupo", values="valor", hole=0.62, color_discrete_sequence=CHART_COLORS)
-                st.plotly_chart(style_donut(fig, f"{tipologia_cliente}<br>{(tipologia_total / mix_df['valor'].sum()):.1%}"), use_container_width=True, key="donut_mix_comp", config={"displayModeBar": False})
+                st.plotly_chart(style_donut(fig, f"{tipologia_cliente}<br>{(tipologia_total / mix_df['valor'].sum()):.1%}"), use_container_width=True, key="donut_mix_comp", config=DONUT_CONFIG)
             else:
                 fig = px.pie(mix_df, names="tipologia", values="valor", hole=0.62, color_discrete_sequence=CHART_COLORS)
-                st.plotly_chart(style_donut(fig, "Mix"), use_container_width=True, key="donut_mix", config={"displayModeBar": False})
+                st.plotly_chart(style_donut(fig, "Mix"), use_container_width=True, key="donut_mix", config=DONUT_CONFIG)
 
     with col_fat_regiao:
         donut_title("Faturamento por Região")
@@ -1707,7 +1597,7 @@ def render_bi() -> None:
                     )
                     st.plotly_chart(
                         style_donut(fig, f"{regiao_cliente}<br>{(faturamento_regiao / total_fat_mercado):.1%}", height=350, bottom_margin=52, revision_key="donut-fat-regiao"),
-                        use_container_width=True, key="donut_fat_comp", config={"displayModeBar": False},
+                        use_container_width=True, key="donut_fat_comp", config=DONUT_CONFIG,
                     )
                 else:
                     fig = px.pie(fat_regiao_df, names="regiao", values="faturamento", hole=0.62, color_discrete_sequence=CHART_COLORS)
@@ -1717,7 +1607,7 @@ def render_bi() -> None:
                     )
                     st.plotly_chart(
                         style_donut(fig, f"Total<br>{format_brl(fat_regiao_df['faturamento'].sum())}", height=350, bottom_margin=52, revision_key="donut-fat-regiao"),
-                        use_container_width=True, key="donut_fat_regiao", config={"displayModeBar": False},
+                        use_container_width=True, key="donut_fat_regiao", config=DONUT_CONFIG,
                     )
 
     with col_share:
@@ -1778,7 +1668,7 @@ def render_bi() -> None:
                 ))
                 st.plotly_chart(
                     style_donut(fig, f"Quimicer<br>{share_quimicer:.1%}", height=350, bottom_margin=52, revision_key="donut-share-quimicer"),
-                    use_container_width=True, key="donut_share_quimicer", config={"displayModeBar": False},
+                    use_container_width=True, key="donut_share_quimicer", config=DONUT_CONFIG,
                 )
                 concorrentes_label = "concorrente" if concorrentes_total == 1 else "concorrentes"
                 st.caption(f"Total de {int(concorrentes_total)} {concorrentes_label} no filtro atual.")
@@ -1936,7 +1826,6 @@ def _prewarm_cache() -> None:
 
 def run_app() -> None:
     ensure_schema()
-    st.set_page_config(page_title="360 Inteligência de Mercado", page_icon="📊", layout="wide")
     st.markdown(CSS, unsafe_allow_html=True)
 
     # pré-aquece radar em background sem travar o render inicial

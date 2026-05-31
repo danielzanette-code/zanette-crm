@@ -16,6 +16,7 @@ from crm_app.helpers import (
     style_chart,
 )
 from crm_app.inteligencia_mercado.data import fetch_news_categoria, fetch_radar_economico
+from crm_app.security import safe_html, safe_url
 
 CSS_IM = """
 <style>
@@ -182,12 +183,12 @@ def _delta_html(value: float | None) -> str:
 
 def _tile(label: str, value: str, delta: float | None = None, note: str = "") -> None:
     trend = "up" if (delta or 0) > 0 else ("down" if (delta or 0) < 0 else "flat")
-    note_html = f'<div style="color:#555;font-size:10px;margin-top:5px;letter-spacing:0.04em;text-transform:none">{note}</div>' if note else ""
+    note_html = f'<div style="color:#555;font-size:10px;margin-top:5px;letter-spacing:0.04em;text-transform:none">{safe_html(note)}</div>' if note else ""
     st.markdown(
         f"""
         <div class="im-tile {trend}">
-            <div class="im-tile-label">{label}</div>
-            <div class="im-tile-value">{value}</div>
+            <div class="im-tile-label">{safe_html(label)}</div>
+            <div class="im-tile-value">{safe_html(value)}</div>
             {_delta_html(delta)}
             {note_html}
         </div>
@@ -198,7 +199,7 @@ def _tile(label: str, value: str, delta: float | None = None, note: str = "") ->
 
 def _news_block(title: str, query: str) -> None:
     items = fetch_news_categoria(query, limit=5)
-    st.markdown(f'<div class="im-news-title">{title}</div>', unsafe_allow_html=True)
+    st.markdown(f'<div class="im-news-title">{safe_html(title)}</div>', unsafe_allow_html=True)
     if not items:
         st.caption("Sem notícias no momento.")
         return
@@ -207,8 +208,8 @@ def _news_block(title: str, query: str) -> None:
         st.markdown(
             f"""
             <div class="im-news-item">
-                <a class="im-news-link" href="{item['link']}" target="_blank">{item['title']}</a>
-                <div class="im-news-meta">{source}</div>
+                <a class="im-news-link" href="{safe_url(item['link'])}" target="_blank" rel="noopener noreferrer">{safe_html(item['title'])}</a>
+                <div class="im-news-meta">{safe_html(source)}</div>
             </div>
             """,
             unsafe_allow_html=True,

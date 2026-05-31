@@ -475,32 +475,52 @@ CSS = """
         pointer-events: none;
     }
 
-    .static-donut-svg {
-        display: block;
-        width: 100%;
-        max-width: 352px;
-        margin: 0 auto;
+    .static-donut-plot {
+        position: relative;
+        width: min(100%, 320px);
+        aspect-ratio: 1;
+        margin: 18px auto 0;
     }
 
-    .static-donut-segment {
-        stroke-linecap: butt;
+    .static-donut-ring {
+        position: absolute;
+        inset: 22px;
+        border-radius: 50%;
+        background: #1c1c1e;
+        box-shadow: inset 0 0 0 2px #1c1c1e;
     }
 
-    .static-donut-pct {
-        fill: #f2f2f7;
-        font-family: var(--font-sans);
-        font-size: 11px;
-        font-weight: 600;
-        text-anchor: middle;
-        dominant-baseline: middle;
+    .static-donut-hole {
+        position: absolute;
+        inset: 27%;
+        border-radius: 50%;
+        background: var(--bg-card);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 0 0 2px #1c1c1e;
     }
 
     .static-donut-center {
-        fill: #f2f2f7;
-        font-family: var(--font-sans);
+        color: #f2f2f7;
         font-size: 16px;
         font-weight: 500;
-        dominant-baseline: middle;
+        line-height: 1.25;
+        text-align: center;
+    }
+
+    .static-donut-center span {
+        display: block;
+    }
+
+    .static-donut-pct {
+        position: absolute;
+        color: #f2f2f7;
+        font-size: 11px;
+        font-weight: 600;
+        line-height: 1;
+        transform: translate(-50%, -50%);
+        text-shadow: 0 1px 2px rgba(0,0,0,0.55);
     }
 
     .static-donut-legend {

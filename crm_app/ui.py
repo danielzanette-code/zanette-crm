@@ -1070,13 +1070,13 @@ def empresa_form(prefix: str, empresa=None) -> dict[str, object]:
         key=f"{prefix}_capacidade",
     )
     producao_text = p2.text_input(
-        "Produção atual (m²)",
+        "Produção m²",
         value=format_br_number(empresa["producao_m2"] if empresa else 0, 2),
         help="Exemplo: 600.000,00",
         key=f"{prefix}_producao",
     )
     polido_text = p3.text_input(
-        "Produção polido (m²)",
+        "Produção m² polido",
         value=format_br_number(empresa["producao_polido_m2"] if empresa else 0, 2),
         help="Exemplo: 150.000,00",
         key=f"{prefix}_polido",

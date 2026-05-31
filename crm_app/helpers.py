@@ -145,30 +145,24 @@ def render_static_donut(labels, values, center_text: str, colors: list[str] | No
             )
 
         legend_items.append(
-            f"""
-            <span class="static-donut-legend-item">
-                <span class="static-donut-swatch" style="background:{color}"></span>
-                <span>{safe_html(label)}</span>
-            </span>
-            """
+            f'<span class="static-donut-legend-item">'
+            f'<span class="static-donut-swatch" style="background:{color}"></span>'
+            f'<span>{safe_html(label)}</span>'
+            f'</span>'
         )
         cumulative += pct
 
-    st.markdown(
-        f"""
-        <div class="static-donut-card">
-            <div class="static-donut-plot" role="img" aria-label="Gráfico de rosca estático">
-                <div class="static-donut-ring" style="background: conic-gradient({', '.join(gradient_stops)});">
-                    <div class="static-donut-hole">
-                        <div class="static-donut-center">{_donut_center_text(center_text)}</div>
-                    </div>
-                </div>
-                {''.join(percent_labels)}
-            </div>
-            <div class="static-donut-legend">
-                {''.join(legend_items)}
-            </div>
-        </div>
-        """,
-        unsafe_allow_html=True,
+    html = (
+        '<div class="static-donut-card">'
+        '<div class="static-donut-plot" role="img" aria-label="Gráfico de rosca estático">'
+        f'<div class="static-donut-ring" style="background: conic-gradient({", ".join(gradient_stops)});">'
+        '<div class="static-donut-hole">'
+        f'<div class="static-donut-center">{_donut_center_text(center_text)}</div>'
+        '</div>'
+        '</div>'
+        f'{"".join(percent_labels)}'
+        '</div>'
+        f'<div class="static-donut-legend">{"".join(legend_items)}</div>'
+        '</div>'
     )
+    st.markdown(html, unsafe_allow_html=True)

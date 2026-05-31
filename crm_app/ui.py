@@ -93,7 +93,22 @@ CSS = """
         padding-bottom: 4rem;
     }
 
-    #MainMenu, footer, header { visibility: hidden; }
+    #MainMenu,
+    footer,
+    header,
+    [data-testid="stHeader"],
+    [data-testid="stToolbar"],
+    [data-testid="stToolbarActions"],
+    [data-testid="stDecoration"],
+    [data-testid="stDeployButton"],
+    [data-testid="stStatusWidget"],
+    [data-testid="stMainMenu"],
+    iframe[title*="Streamlit Cloud"],
+    iframe[title*="Status"] {
+        display: none !important;
+        visibility: hidden !important;
+        pointer-events: none !important;
+    }
 
     /* ── expander / icon guard ───────────────────────────────────────── */
     i, svg,

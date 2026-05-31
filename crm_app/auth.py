@@ -314,9 +314,10 @@ def _password_matches(password: str, stored_hash: str) -> bool:
 
 def _get_credentials() -> dict[str, str]:
     try:
-        return {k: v for k, v in st.secrets["users"].items()}
+        users = st.secrets["users"]
     except Exception:
-        return {"danielzanette": _hash("D4niel.2025@#")}
+        return {}
+    return {str(k): str(v) for k, v in users.items()}
 
 
 def render_login() -> bool:
@@ -375,6 +376,11 @@ def render_login() -> bool:
             st.rerun()
 
         creds = _get_credentials()
+        if not creds:
+            st.session_state["login_error"] = True
+            registrar_tentativa_falha(usuario_clean)
+            st.rerun()
+
         if usuario_clean in creds and _password_matches(senha, creds[usuario_clean]):
             st.session_state["authenticated"] = True
             st.session_state["usuario"] = usuario_clean

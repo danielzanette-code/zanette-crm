@@ -1,11 +1,15 @@
 from __future__ import annotations
 
+import math
+
 import streamlit as st
-import plotly.graph_objects as go
 
 from crm_app.security import safe_html
 
 CHART_COLORS = ["#4ecdc4", "#aeaeb2", "#6c6c70", "#8e8e93", "#636366", "#2c2c2e", "#38b2aa"]
+_DONUT_RADIUS = 92
+_DONUT_STROKE = 42
+_DONUT_CENTER = 160
 
 
 def clean_text(value) -> str:
@@ -87,7 +91,6 @@ def kpi_card(label: str, value) -> None:
         unsafe_allow_html=True,
     )
 
-
 def section_title(title: str, caption: str = "") -> None:
     caption_html = f'<div class="crm-section-caption">{safe_html(caption)}</div>' if caption else ""
     st.markdown(
@@ -96,51 +99,100 @@ def section_title(title: str, caption: str = "") -> None:
     )
 
 
-def style_donut(fig, center_text: str, height: int = 360, bottom_margin: int = 60, revision_key: str = "donut-stable"):
-    fig = style_chart(fig, height=height)
-    fig.update_traces(
-        textinfo="percent",
-        textposition="inside",
-        insidetextorientation="radial",
-        textfont=dict(color="#f2f2f7", size=11, family="Inter, Aptos, Helvetica Neue, sans-serif"),
-        hoverinfo="skip",
-        hovertemplate=None,
-        marker=dict(line=dict(color="#1c1c1e", width=2)),
-        # desativa animação de entrada
-        rotation=0,
-    )
-    fig.update_layout(
-        annotations=[
-            dict(
-                text=center_text,
-                x=0.5,
-                y=0.5,
-                showarrow=False,
-                font_size=15,
-                font_color="#ffffff",
-                align="center",
+def _percent_label(value: float, total: float) -> str:
+    pct = value / total * 100 if total else 0
+    if pct < 3:
+        return f"{pct:.2f}".rstrip("0").rstrip(".") + "%"
+    if abs(pct - round(pct)) < 0.05:
+        return f"{pct:.0f}%"
+    return f"{pct:.1f}%"
+
+
+def _donut_center_text(center_text: str) -> str:
+    lines = [line.strip() for line in clean_text(center_text).replace("<br/>", "<br>").split("<br>")]
+    lines = [line for line in lines if line]
+    if not lines:
+        return ""
+    first_y = 154 - ((len(lines) - 1) * 15)
+    tspans = []
+    for index, line in enumerate(lines[:3]):
+        tspans.append(
+            f'<tspan x="{_DONUT_CENTER}" y="{first_y + index * 30}">{safe_html(line)}</tspan>'
+        )
+    return "\n".join(tspans)
+
+
+def render_static_donut(labels, values, center_text: str, colors: list[str] | None = None) -> None:
+    """Renderiza uma rosca estática em SVG, sem eventos de mouse do Plotly."""
+    pairs = [
+        (clean_text(label).strip() or "Não informado", float(value or 0))
+        for label, value in zip(labels, values)
+        if float(value or 0) > 0
+    ]
+    if not pairs:
+        st.info("Sem dados para este gráfico.")
+        return
+
+    palette = colors or CHART_COLORS
+    total = sum(value for _, value in pairs)
+    circumference = 2 * math.pi * _DONUT_RADIUS
+    cumulative = 0.0
+    arcs: list[str] = []
+    percent_labels: list[str] = []
+    legend_items: list[str] = []
+
+    for index, (label, value) in enumerate(pairs):
+        color = palette[index % len(palette)]
+        pct = value / total if total else 0
+        dash = max(circumference * pct - 1.4, 0)
+        gap = circumference - dash
+        offset = -(circumference * cumulative)
+        arcs.append(
+            f"""
+            <circle class="static-donut-segment"
+                cx="{_DONUT_CENTER}" cy="{_DONUT_CENTER}" r="{_DONUT_RADIUS}"
+                fill="none" stroke="{color}" stroke-width="{_DONUT_STROKE}"
+                stroke-dasharray="{dash:.3f} {gap:.3f}"
+                stroke-dashoffset="{offset:.3f}"
+                transform="rotate(-90 {_DONUT_CENTER} {_DONUT_CENTER})" />
+            """
+        )
+
+        if pct >= 0.02:
+            angle = math.radians(-90 + (cumulative + pct / 2) * 360)
+            label_radius = _DONUT_RADIUS + 2
+            x = _DONUT_CENTER + math.cos(angle) * label_radius
+            y = _DONUT_CENTER + math.sin(angle) * label_radius
+            percent_labels.append(
+                f'<text class="static-donut-pct" x="{x:.1f}" y="{y:.1f}">{_percent_label(value, total)}</text>'
             )
-        ],
-        showlegend=True,
-        legend=dict(
-            orientation="h",
-            yanchor="top",
-            y=-0.02,
-            xanchor="center",
-            x=0.5,
-            font=dict(size=11, color="#aeaeb2"),
-            itemsizing="constant",
-            traceorder="normal",
-            itemclick=False,
-            itemdoubleclick=False,
-        ),
-        margin=dict(l=12, r=12, t=18, b=bottom_margin),
-        uirevision=revision_key,
-        dragmode=False,
-        hovermode=False,
-        transition=dict(duration=0, easing="linear"),
-        paper_bgcolor="rgba(0,0,0,0)",
-        plot_bgcolor="rgba(0,0,0,0)",
+
+        legend_items.append(
+            f"""
+            <span class="static-donut-legend-item">
+                <span class="static-donut-swatch" style="background:{color}"></span>
+                <span>{safe_html(label)}</span>
+            </span>
+            """
+        )
+        cumulative += pct
+
+    st.markdown(
+        f"""
+        <div class="static-donut-card">
+            <svg class="static-donut-svg" viewBox="0 0 320 352" role="img" aria-label="Gráfico de rosca estático">
+                <circle cx="{_DONUT_CENTER}" cy="{_DONUT_CENTER}" r="{_DONUT_RADIUS}"
+                    fill="none" stroke="#1c1c1e" stroke-width="{_DONUT_STROKE}" />
+                {''.join(arcs)}
+                {''.join(percent_labels)}
+                <text class="static-donut-center" text-anchor="middle">
+                    {_donut_center_text(center_text)}
+                </text>
+            </svg>
+            <div class="static-donut-legend">
+                {''.join(legend_items)}
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
     )
-    fig.update_traces(pull=0)
-    return fig

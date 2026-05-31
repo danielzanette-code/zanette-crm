@@ -18,7 +18,7 @@ from crm_app.helpers import (
     parse_br_number,
     section_title,
     style_chart,
-    style_donut,
+    render_static_donut,
 )
 from crm_app.inteligencia_mercado.ui import render_inteligencia_mercado
 from crm_app.inteligencia_mercado.data import fetch_news_categoria, fetch_radar_economico
@@ -463,13 +463,72 @@ CSS = """
         min-height: 400px;
     }
 
-    [data-testid="stPlotlyChart"] .modebar-container,
-    [data-testid="stPlotlyChart"] .modebar,
-    [data-testid="stPlotlyChart"] .hoverlayer,
-    [data-testid="stPlotlyChart"] .scrollbar {
-        display: none !important;
-        opacity: 0 !important;
-        pointer-events: none !important;
+    .static-donut-card {
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-md);
+        box-shadow: var(--shadow-sm);
+        min-height: 400px;
+        padding: 8px 8px 10px;
+        overflow: hidden;
+        user-select: none;
+        pointer-events: none;
+    }
+
+    .static-donut-svg {
+        display: block;
+        width: 100%;
+        max-width: 352px;
+        margin: 0 auto;
+    }
+
+    .static-donut-segment {
+        stroke-linecap: butt;
+    }
+
+    .static-donut-pct {
+        fill: #f2f2f7;
+        font-family: var(--font-sans);
+        font-size: 11px;
+        font-weight: 600;
+        text-anchor: middle;
+        dominant-baseline: middle;
+    }
+
+    .static-donut-center {
+        fill: #f2f2f7;
+        font-family: var(--font-sans);
+        font-size: 16px;
+        font-weight: 500;
+        dominant-baseline: middle;
+    }
+
+    .static-donut-legend {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 8px 18px;
+        min-height: 42px;
+        margin-top: -12px;
+        color: var(--ink-mid);
+        font-size: 12px;
+        font-weight: 600;
+    }
+
+    .static-donut-legend-item {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        white-space: nowrap;
+    }
+
+    .static-donut-swatch {
+        width: 11px;
+        height: 11px;
+        border: 2px solid #1c1c1e;
+        border-radius: 2px;
+        box-shadow: 0 0 0 1px rgba(255,255,255,0.18);
     }
 
     /* ── filter strip ────────────────────────────────────────────────── */
@@ -715,8 +774,6 @@ CSS = """
     }
 </style>
 """
-
-DONUT_CONFIG = {"staticPlot": True, "displayModeBar": False, "scrollZoom": False}
 
 def render_header() -> None:
     m = metrics()
@@ -1546,19 +1603,17 @@ def render_bi() -> None:
                         "valor": [producao_cliente, max(total_producao_mercado - producao_cliente, 0)],
                     }
                 )
-                fig = px.pie(comparativo_df, names="grupo", values="valor", hole=0.62, color_discrete_sequence=CHART_COLORS)
-                fig.update_traces(
-                    hovertemplate="<b>%{label}</b><br>Produção: %{customdata} m²<br>Participação: %{percent}<extra></extra>",
-                    customdata=comparativo_df["valor"].map(format_quantity),
+                render_static_donut(
+                    comparativo_df["grupo"],
+                    comparativo_df["valor"],
+                    f"{cliente_sel}<br>{(producao_cliente / total_producao_mercado):.1%}",
                 )
-                st.plotly_chart(style_donut(fig, f"{cliente_sel}<br>{(producao_cliente / total_producao_mercado):.1%}"), use_container_width=True, key="donut_prod_comp", config=DONUT_CONFIG)
             else:
-                fig = px.pie(regiao_df, names="regiao", values="producao_m2", hole=0.62, color_discrete_sequence=CHART_COLORS)
-                fig.update_traces(
-                    hovertemplate="<b>%{label}</b><br>Produção: %{customdata} m²<br>Participação: %{percent}<extra></extra>",
-                    customdata=regiao_df["producao_m2"].map(format_quantity),
+                render_static_donut(
+                    regiao_df["regiao"],
+                    regiao_df["producao_m2"],
+                    f"{format_quantity(regiao_df['producao_m2'].sum())}<br>m²",
                 )
-                st.plotly_chart(style_donut(fig, f"{format_quantity(regiao_df['producao_m2'].sum())}<br>m²"), use_container_width=True, key="donut_prod_regiao", config=DONUT_CONFIG)
 
     with col_mix:
         donut_title("Mix por Tipologia")
@@ -1582,11 +1637,13 @@ def render_bi() -> None:
                         "valor": [tipologia_total, max(mix_df["valor"].sum() - tipologia_total, 0)],
                     }
                 )
-                fig = px.pie(comparativo_df, names="grupo", values="valor", hole=0.62, color_discrete_sequence=CHART_COLORS)
-                st.plotly_chart(style_donut(fig, f"{tipologia_cliente}<br>{(tipologia_total / mix_df['valor'].sum()):.1%}"), use_container_width=True, key="donut_mix_comp", config=DONUT_CONFIG)
+                render_static_donut(
+                    comparativo_df["grupo"],
+                    comparativo_df["valor"],
+                    f"{tipologia_cliente}<br>{(tipologia_total / mix_df['valor'].sum()):.1%}",
+                )
             else:
-                fig = px.pie(mix_df, names="tipologia", values="valor", hole=0.62, color_discrete_sequence=CHART_COLORS)
-                st.plotly_chart(style_donut(fig, "Mix"), use_container_width=True, key="donut_mix", config=DONUT_CONFIG)
+                render_static_donut(mix_df["tipologia"], mix_df["valor"], "Mix")
 
     with col_fat_regiao:
         donut_title("Faturamento por Região")
@@ -1614,24 +1671,16 @@ def render_bi() -> None:
                             "valor": [faturamento_regiao, max(total_fat_mercado - faturamento_regiao, 0)],
                         }
                     )
-                    fig = px.pie(comparativo_df, names="grupo", values="valor", hole=0.62, color_discrete_sequence=CHART_COLORS)
-                    fig.update_traces(
-                        hovertemplate="<b>%{label}</b><br>Faturamento: %{customdata}<br>Participação: %{percent}<extra></extra>",
-                        customdata=comparativo_df["valor"].map(format_brl),
-                    )
-                    st.plotly_chart(
-                        style_donut(fig, f"{regiao_cliente}<br>{(faturamento_regiao / total_fat_mercado):.1%}", height=350, bottom_margin=52, revision_key="donut-fat-regiao"),
-                        use_container_width=True, key="donut_fat_comp", config=DONUT_CONFIG,
+                    render_static_donut(
+                        comparativo_df["grupo"],
+                        comparativo_df["valor"],
+                        f"{regiao_cliente}<br>{(faturamento_regiao / total_fat_mercado):.1%}",
                     )
                 else:
-                    fig = px.pie(fat_regiao_df, names="regiao", values="faturamento", hole=0.62, color_discrete_sequence=CHART_COLORS)
-                    fig.update_traces(
-                        hovertemplate="<b>%{label}</b><br>Faturamento: %{customdata}<br>Participação: %{percent}<extra></extra>",
-                        customdata=fat_regiao_df["faturamento"].map(format_brl),
-                    )
-                    st.plotly_chart(
-                        style_donut(fig, f"Total<br>{format_brl(fat_regiao_df['faturamento'].sum())}", height=350, bottom_margin=52, revision_key="donut-fat-regiao"),
-                        use_container_width=True, key="donut_fat_regiao", config=DONUT_CONFIG,
+                    render_static_donut(
+                        fat_regiao_df["regiao"],
+                        fat_regiao_df["faturamento"],
+                        f"Total<br>{format_brl(fat_regiao_df['faturamento'].sum())}",
                     )
 
     with col_share:
@@ -1666,33 +1715,19 @@ def render_bi() -> None:
                     lambda value: share_legend_order.index(value) if value in share_legend_order else len(share_legend_order)
                 )
                 top_fornecedores = top_fornecedores.sort_values(["legend_rank", "Fornecedor"]).drop(columns=["legend_rank"])
-                fig = px.pie(
-                    top_fornecedores,
-                    names="Fornecedor",
-                    values="faturamento",
-                    hole=0.62,
-                    color="Fornecedor",
-                    category_orders={"Fornecedor": share_legend_order},
-                    color_discrete_map={
-                        "PG QUIMICA": "#4ecdc4",
-                        "Não informado": "#6c6c70",
-                        "QUIMICER": "#38b2aa",
-                        "LAMBRA": "#8e8e93",
-                        "MANCHESTER": "#aeaeb2",
-                        "Outros": "#48484a",
-                    },
-                )
-                fig.update_traces(
-                    hovertemplate="<b>%{label}</b><br>Faturamento: %{customdata}<br>Participação: %{percent}<extra></extra>",
-                    customdata=top_fornecedores["faturamento"].map(format_brl),
-                )
-                fig.update_layout(legend=dict(
-                    orientation="h", yanchor="top", y=-0.06, xanchor="center", x=0.5,
-                    font=dict(size=11), itemsizing="constant", entrywidth=72, entrywidthmode="pixels",
-                ))
-                st.plotly_chart(
-                    style_donut(fig, f"Quimicer<br>{share_quimicer:.1%}", height=350, bottom_margin=52, revision_key="donut-share-quimicer"),
-                    use_container_width=True, key="donut_share_quimicer", config=DONUT_CONFIG,
+                share_colors = {
+                    "PG QUIMICA": "#4ecdc4",
+                    "Não informado": "#6c6c70",
+                    "QUIMICER": "#38b2aa",
+                    "LAMBRA": "#8e8e93",
+                    "MANCHESTER": "#aeaeb2",
+                    "Outros": "#48484a",
+                }
+                render_static_donut(
+                    top_fornecedores["Fornecedor"],
+                    top_fornecedores["faturamento"],
+                    f"Quimicer<br>{share_quimicer:.1%}",
+                    colors=[share_colors.get(label, CHART_COLORS[index % len(CHART_COLORS)]) for index, label in enumerate(top_fornecedores["Fornecedor"])],
                 )
                 concorrentes_label = "concorrente" if concorrentes_total == 1 else "concorrentes"
                 st.caption(f"Total de {int(concorrentes_total)} {concorrentes_label} no filtro atual.")

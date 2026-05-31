@@ -516,11 +516,16 @@ CSS = """
     .static-donut-pct {
         position: absolute;
         color: #f2f2f7;
-        font-size: 11px;
-        font-weight: 600;
+        background: rgba(17,17,18,0.50);
+        border: 1px solid rgba(255,255,255,0.12);
+        border-radius: 999px;
+        padding: 2px 5px;
+        font-size: 12px;
+        font-weight: 800;
         line-height: 1;
         transform: translate(-50%, -50%);
-        text-shadow: 0 1px 2px rgba(0,0,0,0.55);
+        text-shadow: 0 1px 3px rgba(0,0,0,0.95);
+        box-shadow: 0 2px 8px rgba(0,0,0,0.30);
     }
 
     .static-donut-legend {

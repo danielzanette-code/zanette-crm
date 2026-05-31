@@ -130,7 +130,7 @@ CSS_IM = """
 
     /* ── news ────────────────────────────────────────────────────────── */
     .im-news-title {
-        color: var(--ink, #f0f4ff);
+        color: #4ecdc4;
         font-size: 11px;
         font-weight: 800;
         letter-spacing: 0.09em;
@@ -266,19 +266,8 @@ def render_noticias() -> None:
     section_title("Monitor de Notícias", "Cerâmica, construção civil e transporte em leitura rápida.")
 
     categorias = list(NEWS_CATEGORIAS.keys())
-    filtro = st.pills(
-        "Categoria",
-        categorias,
-        selection_mode="multi",
-        default=categorias,
-        key="im_news_pills_v2",
-    )
-    if not filtro:
-        st.info("Selecione ao menos uma categoria.")
-        return
-
-    cols = st.columns(len(filtro), gap="large")
-    for col, cat in zip(cols, filtro):
+    cols = st.columns(len(categorias), gap="large")
+    for col, cat in zip(cols, categorias):
         with col:
             _news_block(cat, NEWS_CATEGORIAS[cat])
 

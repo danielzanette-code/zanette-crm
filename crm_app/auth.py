@@ -3,6 +3,7 @@ from __future__ import annotations
 import hashlib
 import hmac
 import streamlit as st
+import streamlit.components.v1 as components
 
 LOGIN_CSS = """
 <style>
@@ -246,6 +247,19 @@ iframe[title*="Status"] {
     transform: translateY(-50%) !important;
 }
 
+/* opção salvar senha */
+[data-testid="stCheckbox"] {
+    margin: -2px 0 2px !important;
+}
+[data-testid="stCheckbox"] label {
+    color: rgba(255,255,255,0.46) !important;
+    font-size: 11px !important;
+    font-weight: 600 !important;
+}
+[data-testid="stCheckbox"] svg {
+    color: #4ecdc4 !important;
+}
+
 /* botão entrar */
 [data-testid="stFormSubmitButton"] button,
 [data-testid="stBaseButton-secondaryFormSubmit"],
@@ -324,6 +338,52 @@ def _get_credentials() -> dict[str, str]:
     return {str(k): str(v) for k, v in users.items()}
 
 
+def _configure_browser_password_manager(allow_save: bool) -> None:
+    autocomplete = "current-password" if allow_save else "off"
+    components.html(
+        f"""
+        <script>
+        const allowSave = {str(allow_save).lower()};
+        const passwordAutocomplete = "{autocomplete}";
+
+        function configureLoginFields() {{
+            let doc;
+            try {{
+                doc = window.parent.document;
+            }} catch (error) {{
+                return;
+            }}
+
+            const inputs = Array.from(doc.querySelectorAll("input"));
+            const username = inputs.find((input) => input.placeholder === "Usuário");
+            const password = inputs.find((input) => input.placeholder === "Senha");
+
+            if (username) {{
+                username.setAttribute("name", "username");
+                username.setAttribute("autocomplete", allowSave ? "username" : "off");
+                username.setAttribute("inputmode", "text");
+            }}
+
+            if (password) {{
+                password.setAttribute("name", "password");
+                password.setAttribute("autocomplete", passwordAutocomplete);
+            }}
+        }}
+
+        configureLoginFields();
+        try {{
+            new MutationObserver(configureLoginFields).observe(
+                window.parent.document.body,
+                {{ childList: true, subtree: true }}
+            );
+        }} catch (error) {{}}
+        </script>
+        """,
+        height=0,
+        width=0,
+    )
+
+
 def render_login() -> bool:
     if st.session_state.get("authenticated"):
         return True
@@ -365,9 +425,12 @@ def render_login() -> bool:
         st.markdown(f'<div class="lg-error">{msg}</div>', unsafe_allow_html=True)
 
     with st.form("login_form", clear_on_submit=False):
-        usuario = st.text_input("u", placeholder="Usuário", label_visibility="collapsed")
-        senha   = st.text_input("s", type="password", placeholder="Senha", label_visibility="collapsed")
+        usuario = st.text_input("Usuário", placeholder="Usuário", label_visibility="collapsed")
+        senha   = st.text_input("Senha", type="password", placeholder="Senha", label_visibility="collapsed")
+        salvar_senha = st.checkbox("Salvar senha no navegador", value=True, key="save_password_browser")
         entrar  = st.form_submit_button("Entrar →", use_container_width=True)
+
+    _configure_browser_password_manager(salvar_senha)
 
     if entrar:
         # sanitiza inputs antes de qualquer verificação

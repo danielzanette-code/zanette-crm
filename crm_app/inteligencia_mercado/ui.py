@@ -134,24 +134,26 @@ CSS_IM = """
         font-size: 11px;
         font-weight: 800;
         letter-spacing: 0.09em;
-        margin: 0 0 10px;
+        margin: 0 0 12px;
         text-transform: uppercase;
     }
     .im-news-item {
-        padding: 8px 0;
-        border-top: 1px solid var(--border, rgba(255,255,255,0.07));
+        background: rgba(255,255,255,0.025);
+        border: 1px solid var(--border, rgba(255,255,255,0.07));
+        border-radius: 8px;
+        margin-bottom: 9px;
+        padding: 11px 12px;
     }
-    .im-news-item:first-of-type { border-top: none; padding-top: 0; }
     .im-news-link {
         display: block;
         color: #ffffff !important;
-        font-size: 13px;
-        font-weight: 600;
-        line-height: 1.4;
-        text-decoration: none;
-        margin-bottom: 3px;
+        font-size: 12px;
+        font-weight: 700;
+        line-height: 1.35;
+        text-decoration: none !important;
+        margin-bottom: 6px;
     }
-    .im-news-link:hover { text-decoration: underline; color: #cccccc !important; }
+    .im-news-link:hover { color: #4ecdc4 !important; }
     .im-news-meta { color: var(--muted, #6b7a96); font-size: 11px; }
 
     /* ── divider ─────────────────────────────────────────────────────── */
@@ -164,11 +166,9 @@ CSS_IM = """
 """
 
 NEWS_CATEGORIAS = {
-    "Ceramica": "ceramica revestimentos pisos porcelanato brasil",
-    "Construção civil": "construcao civil mercado brasil",
-    "Gas e energia": "gas natural energia petroleo brasil",
-    "Quimica industrial": "quimica industrial insumos ceramica brasil",
-    "Logistica": "transporte logistica frete brasil",
+    "Cerâmica": "indústria cerâmica revestimentos porcelanato pisos Brasil",
+    "Construção civil": "construção civil custos materiais obras mercado Brasil",
+    "Transporte": "transporte rodoviário frete logística Brasil",
 }
 
 
@@ -198,7 +198,7 @@ def _tile(label: str, value: str, delta: float | None = None, note: str = "") ->
 
 
 def _news_block(title: str, query: str) -> None:
-    items = fetch_news_categoria(query, limit=5)
+    items = fetch_news_categoria(query, limit=3)
     st.markdown(f'<div class="im-news-title">{safe_html(title)}</div>', unsafe_allow_html=True)
     if not items:
         st.caption("Sem notícias no momento.")
@@ -263,21 +263,21 @@ def render_radar_economico() -> None:
 
 @st.fragment
 def render_noticias() -> None:
-    section_title("Monitor de Notícias", "Radar setorial filtrado por categoria. Clique na notícia para abrir a fonte.")
+    section_title("Monitor de Notícias", "Cerâmica, construção civil e transporte em leitura rápida.")
 
     categorias = list(NEWS_CATEGORIAS.keys())
     filtro = st.pills(
         "Categoria",
         categorias,
         selection_mode="multi",
-        default=categorias[:3],
-        key="im_news_pills",
+        default=categorias,
+        key="im_news_pills_v2",
     )
     if not filtro:
         st.info("Selecione ao menos uma categoria.")
         return
 
-    cols = st.columns(len(filtro))
+    cols = st.columns(len(filtro), gap="large")
     for col, cat in zip(cols, filtro):
         with col:
             _news_block(cat, NEWS_CATEGORIAS[cat])
@@ -502,7 +502,7 @@ def render_potencial() -> None:
 
 _IM_SECTIONS = [
     ("Radar Econômico",      "📈", "Câmbio, petróleo e juros"),
-    ("Monitor de Notícias",  "📰", "Notícias por setor com filtro de categoria"),
+    ("Monitor de Notícias",  "📰", "Cerâmica, construção e transporte"),
     ("Benchmarking",         "🏆", "Share de mercado por fornecedor"),
     ("Potencial de Mercado", "🎯", "Clientes com maior gap de crescimento"),
 ]

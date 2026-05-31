@@ -463,6 +463,15 @@ CSS = """
         min-height: 400px;
     }
 
+    [data-testid="stPlotlyChart"] .modebar-container,
+    [data-testid="stPlotlyChart"] .modebar,
+    [data-testid="stPlotlyChart"] .hoverlayer,
+    [data-testid="stPlotlyChart"] .scrollbar {
+        display: none !important;
+        opacity: 0 !important;
+        pointer-events: none !important;
+    }
+
     /* ── filter strip ────────────────────────────────────────────────── */
     .bi-filter-title {
         color: var(--muted);

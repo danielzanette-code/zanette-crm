@@ -1035,7 +1035,7 @@ def render_empresas() -> None:
                 render_produtos_for_empresa(int(empresa_id), clean_text(empresa["nome"]))
         return
 
-    empresas = list_empresas(search=st.text_input("Buscar empresa"))
+    empresas = list_empresas()
     if empresas.empty:
         st.info("Nenhum cliente cadastrado.")
         return

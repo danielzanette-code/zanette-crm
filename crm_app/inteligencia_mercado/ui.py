@@ -255,7 +255,7 @@ def render_radar_economico() -> None:
 
     st.caption(
         f"Atualizado em: {snap.get('updated_at', '—')} · "
-        "Fontes: AwesomeAPI (câmbio), OilPriceAPI/Yahoo (petróleo), Banco Central do Brasil"
+        "Fontes: AwesomeAPI/Frankfurter (câmbio), OilPriceAPI/Yahoo (petróleo), Banco Central do Brasil"
     )
 
 

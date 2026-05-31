@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import xml.etree.ElementTree as ET
 from concurrent.futures import ThreadPoolExecutor
-from datetime import datetime
+from datetime import datetime, timedelta
 from urllib.parse import quote_plus
 
 import requests
@@ -105,6 +105,34 @@ def _awesome_daily(pair: str) -> tuple[str, float | None, float | None]:
         return pair, None, None
 
 
+def _frankfurter(pair: str) -> tuple[str, float | None, float | None]:
+    """Fallback de câmbio pelo último dia útil disponível."""
+    base, quote = pair.split("-")
+    end = datetime.now().date()
+    start = end - timedelta(days=14)
+
+    try:
+        r = requests.get(
+            f"https://api.frankfurter.app/{start.isoformat()}..{end.isoformat()}",
+            params={"from": base, "to": quote},
+            headers={"User-Agent": "Mozilla/5.0", "Accept": "application/json"},
+            timeout=_TIMEOUT,
+        )
+        r.raise_for_status()
+        rates = r.json().get("rates", {})
+        values = [
+            float(rates[day][quote])
+            for day in sorted(rates)
+            if rates.get(day, {}).get(quote) is not None
+        ]
+        price = values[-1] if values else None
+        prev = values[-2] if len(values) >= 2 else None
+        pct = round((price - prev) / prev * 100, 2) if price and prev else None
+        return pair, price, pct
+    except Exception:
+        return pair, None, None
+
+
 def _oilpriceapi() -> dict[str, tuple[float | None, float | None]]:
     """Retorna WTI e Brent pelo último fechamento público disponível."""
     data: dict[str, tuple[float | None, float | None]] = {}
@@ -161,6 +189,8 @@ def fetch_radar_economico() -> dict[str, object]:
         futures["fx"] = pool.submit(_awesome)
         futures["fx_daily_usd"] = pool.submit(_awesome_daily, "USD-BRL")
         futures["fx_daily_eur"] = pool.submit(_awesome_daily, "EUR-BRL")
+        futures["fx_fallback_usd"] = pool.submit(_frankfurter, "USD-BRL")
+        futures["fx_fallback_eur"] = pool.submit(_frankfurter, "EUR-BRL")
         futures["oil"] = pool.submit(_oilpriceapi)
         for sid in bcb_series:
             futures[f"bcb_{sid}"] = pool.submit(_bcb, sid)
@@ -188,6 +218,15 @@ def fetch_radar_economico() -> dict[str, object]:
                 elif pair == "EUR-BRL":
                     snap["eur_brl"] = price or snap["eur_brl"]
                     snap["eur_brl_change"] = pct if pct is not None else snap["eur_brl_change"]
+
+            elif key.startswith("fx_fallback_"):
+                pair, price, pct = result
+                if pair == "USD-BRL":
+                    snap["usd_brl"] = snap["usd_brl"] or price
+                    snap["usd_brl_change"] = snap["usd_brl_change"] if snap["usd_brl_change"] is not None else pct
+                elif pair == "EUR-BRL":
+                    snap["eur_brl"] = snap["eur_brl"] or price
+                    snap["eur_brl_change"] = snap["eur_brl_change"] if snap["eur_brl_change"] is not None else pct
 
             elif key == "oil":
                 data = result

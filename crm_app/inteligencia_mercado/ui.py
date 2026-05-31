@@ -224,49 +224,38 @@ def _divider() -> None:
 
 @st.fragment
 def render_radar_economico() -> None:
-    section_title("Radar Econômico", "Indicadores globais que impactam o custo de produção cerâmica.")
+    section_title("Radar Econômico", "Últimos fechamentos e indicadores que impactam o custo de produção cerâmica.")
     snap = fetch_radar_economico()
 
-    # ── linha 1: câmbio + energia ─────────────────────────────────────
-    c1, c2, c3, c4, c5 = st.columns(5)
+    # ── linha 1: câmbio + petróleo ────────────────────────────────────
+    c1, c2, c3, c4 = st.columns(4)
     with c1:
         val = f"R$ {format_br_number(snap['usd_brl'], 2)}" if snap.get("usd_brl") else "—"
-        _tile("Dólar USD/BRL", val, snap.get("usd_brl_change"))
+        _tile("Dólar USD/BRL", val, snap.get("usd_brl_change"), note="Último fechamento disponível")
     with c2:
         val = f"R$ {format_br_number(snap['eur_brl'], 2)}" if snap.get("eur_brl") else "—"
-        _tile("Euro EUR/BRL", val, snap.get("eur_brl_change"))
+        _tile("Euro EUR/BRL", val, snap.get("eur_brl_change"), note="Último fechamento disponível")
     with c3:
         val = f"US$ {format_br_number(snap['wti_usd'], 2)}" if snap.get("wti_usd") else "—"
-        _tile("Petróleo WTI", val, snap.get("wti_change"), note="Barril em dólares")
+        _tile("Petróleo WTI", val, snap.get("wti_change"), note="Barril — último fechamento")
     with c4:
         val = f"US$ {format_br_number(snap['brent_usd'], 2)}" if snap.get("brent_usd") else "—"
-        _tile("Petróleo Brent", val, snap.get("brent_change"), note="Referência global")
-    with c5:
-        val = f"US$ {format_br_number(snap['gas_usd'], 2)}" if snap.get("gas_usd") else "—"
-        _tile("Gás Natural", val, snap.get("gas_change"), note="MMBtu em dólares")
+        _tile("Petróleo Brent", val, snap.get("brent_change"), note="Referência global — fechamento")
 
     st.markdown("<div style='margin-top:10px'></div>", unsafe_allow_html=True)
 
-    # ── linha 2: insumos + macro + frete ─────────────────────────────
-    c6, c7, c8, c9, c10 = st.columns(5)
-    with c6:
-        val = f"US$ {format_br_number(snap['copper_usd'], 3)}" if snap.get("copper_usd") else "—"
-        _tile("Cobre (lb)", val, snap.get("copper_change"), note="Insumo industrial")
-    with c7:
-        val = f"{format_br_number(snap['bdi'], 0)} pts" if snap.get("bdi") else "—"
-        _tile("Baltic Dry Index", val, snap.get("bdi_change"), note="Frete marítimo granel")
-    with c8:
+    # ── linha 2: macro Brasil ─────────────────────────────────────────
+    c5, c6 = st.columns(2)
+    with c5:
         val = f"{format_br_number(snap['incc_pct'], 2)}%" if snap.get("incc_pct") else "—"
         _tile("INCC Mensal", val, note="Construção civil — BCB")
-    with c9:
+    with c6:
         val = f"{format_br_number(snap['selic_pct'], 2)}% a.a." if snap.get("selic_pct") else "—"
         _tile("Selic", val, note="Taxa básica de juros")
-    with c10:
-        _tile("SCFI China", "Em breve", note="Frete container Xangai")
 
     st.caption(
         f"Atualizado em: {snap.get('updated_at', '—')} · "
-        "Fontes: AwesomeAPI (câmbio), Yahoo Finance (commodities), Banco Central do Brasil"
+        "Fontes: AwesomeAPI (câmbio), OilPriceAPI/Yahoo (petróleo), Banco Central do Brasil"
     )
 
 
@@ -512,7 +501,7 @@ def render_potencial() -> None:
 # ── Entry point ───────────────────────────────────────────────────────────────
 
 _IM_SECTIONS = [
-    ("Radar Econômico",      "📈", "Câmbio, petróleo e gás em tempo real"),
+    ("Radar Econômico",      "📈", "Câmbio, petróleo e juros"),
     ("Monitor de Notícias",  "📰", "Notícias por setor com filtro de categoria"),
     ("Benchmarking",         "🏆", "Share de mercado por fornecedor"),
     ("Potencial de Mercado", "🎯", "Clientes com maior gap de crescimento"),
